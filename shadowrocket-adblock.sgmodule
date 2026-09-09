@@ -40,6 +40,13 @@ DOMAIN,dig.bdurl.net,REJECT-DROP
 DOMAIN,adx-ad-prod.wkanx.com,REJECT-DROP
 DOMAIN-SUFFIX,dahhxxttxs.com,REJECT-DROP
 
+# > 抖音电商业务图片精确放行
+# 仅放行日志确认的业务图片主机，保留其他同类广告域名拦截
+DOMAIN,p3-item.ecombdimg.com,DIRECT
+DOMAIN,p9-item.ecombdimg.com,DIRECT
+DOMAIN,p26-item.ecombdimg.com,DIRECT
+DOMAIN,p3-aio.ecombdimg.com,DIRECT
+
 # 直播/电商广告素材
 DOMAIN,p3-webcast.douyinpic.com,REJECT-DROP
 DOMAIN-WILDCARD,*-item.ecombdimg.com,REJECT-DROP
