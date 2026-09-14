@@ -4,6 +4,13 @@
 
 [Rule]
 
+# > 无尽冬日核心服务直连（合并自附件）
+DOMAIN-SUFFIX,campfiregames.cn,DIRECT
+DOMAIN-SUFFIX,centurygame.com,DIRECT
+DOMAIN-SUFFIX,centurygames.com,DIRECT
+DOMAIN-SUFFIX,dailygn.com,DIRECT
+DOMAIN,ir-sdk.dun.163.com,DIRECT
+
 # > 用户提供的指定直连规则
 DOMAIN-KEYWORD,xfmanga,DIRECT
 DOMAIN-SUFFIX,play.xfvod.pro,DIRECT
