@@ -1,0 +1,50 @@
+# Quantumult X 直连精确补充分流资源
+# 用法：添加到 [filter_remote]；建议放在拒绝型广告分流资源之前。
+
+# 无尽冬日核心服务
+host-suffix, campfiregames.cn, direct
+host-suffix, centurygame.com, direct
+host-suffix, centurygames.com, direct
+host-suffix, dailygn.com, direct
+host, ir-sdk.dun.163.com, direct
+
+# 用户指定的视频/漫画站直连
+host-keyword, xfmanga, direct
+host-suffix, play.xfvod.pro, direct
+host-keyword, moonci, direct
+host-keyword, quark, direct
+host-keyword, cycstream, direct
+host-keyword, cycani, direct
+
+# Cloudflare 地区探测及页面依赖
+host, cloudflare.com, direct
+host-suffix, polyfill-js.cn, direct
+host-suffix, f.clarity.ms, direct
+
+# 用户提供的指定直连域名
+host-suffix, acc.skyysw.com, direct
+host-suffix, vip1.lz-cdn6.com, direct
+host-suffix, v16m-default.akamaized.net, direct
+host-suffix, www.emw5es6.com, direct
+host-suffix, api.xkpcth.com, direct
+host-suffix, doh.pub, direct
+host-suffix, api.gq89em.com, direct
+host-suffix, resource.nj82wbp.top, direct
+host-suffix, go.mayzaent.com, direct
+host-suffix, yzzy.play-cdn10.com, direct
+host-suffix, cos.hxx2023.cc, direct
+host-suffix, qsvip.hxx2023.cc, direct
+host-suffix, cdn4.rplay4.com, direct
+
+# 日志分析确认的播放器、统计、资源和接口主机
+host, analytics.adjust.io, direct
+host, union.dplayerstatic.com, direct
+host, pic.dxbkw.com, direct
+host, img.leshitp.top, direct
+host, images.67c6c7a.com, direct
+host, haiwaiapi.1fc8ab0.com, direct
+host, api.7gmsut2m.com, direct
+host, api.r2uhs2.com, direct
+host, sdapi.gmcztd.com, direct
+host, rg.w57cy8y.com, direct
+host, fengbao12.com, direct
