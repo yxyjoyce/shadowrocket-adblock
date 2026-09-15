@@ -14,22 +14,9 @@ DOMAIN-SUFFIX,innoads.cn,REJECT
 DOMAIN-SUFFIX,adlog-ztjy.szy.cn,REJECT
 
 # > 小蚕惠生活广告 SDK
-# 2026-09-15-233620：MatchPlacement 返回 ad_open=1，随后出现广告 SDK 与实际视频/图片素材
-# 仅拦截已确认的广告投放主机，不拦截 gw.xiaocantech.com 业务接口
+# 安全优化：仅拦截已确认的开屏广告 SDK 域名，不拦截小蚕业务接口
 DOMAIN,zlsdk.1rtb.net,REJECT
 DOMAIN,sdk.1rtb.net,REJECT
-DOMAIN,sl.adbiding.com,REJECT
-DOMAIN,sdkconf.adbiding.com,REJECT
-DOMAIN,bid.adbiding.com,REJECT
-DOMAIN,ads-bid.leadmoad.com,REJECT
-DOMAIN,ad-api.adn-plus.com.cn,REJECT
-DOMAIN,adprolink.xwpbj.com,REJECT
-DOMAIN,de.ad.gameley.com,REJECT
-DOMAIN,jp.ad.gameley.com,REJECT
-DOMAIN,sdkapi.richmob.cn,REJECT
-DOMAIN,adsdk.richmob.cn,REJECT
-DOMAIN,vdn-ad.vzuu.com,REJECT-DROP
-DOMAIN,nexorax.datads.cn,REJECT-DROP
 
 # > 睿博士（P6SLite）广告链
 # 2026-09-15 Quantumult X HTTP 分析确认：仅拦截返回广告素材、落地页及监测的 SDK 主机。
@@ -303,8 +290,6 @@ DOMAIN-SUFFIX,api.touch-moblie.com,REJECT
 # 精确拦截广告配置和广告内容接口，不拦截小蚕业务接口
 ^https?:\/\/ad\.baihemob\.com\/(infoConfig|checkCd|setGInfo)\/ - reject-200
 ^https?:\/\/inner\.baihemob\.com\/ad2(\/|\?|$) - reject-200
-# 小蚕广告 SDK 的 ByteDance playable 包；仅匹配广告路径
-^https?:\/\/lf-cdn-tos\.bytescm\.com\/obj\/static\/ad\/play-comp\/.* - reject-200
 ^https?:\/\/iyes\.youku\.com\/uts/v\d\/start - reject-200
 # > csdn
 ^https?:\/\/app-gw\.csdn\.net\/silkroad-api\/api\/v\d\/assemble\/list\/pub\/channel\/app_open_screen_ad - reject-200
@@ -1472,8 +1457,6 @@ replaceBody = type=http-response, pattern=^https?:\/\/apps\.workair\.cn\/app\/ve
 # > xiaocanhuishenghuo
 # 恢复小蚕 /rpc 响应中的开屏弹窗字段处理
 replaceBody = type=http-response, pattern=^https:\/\/gw\.xiaocantech\.com\/rpc, script-path=https://raw.githubusercontent.com/Script-Hub-Org/Script-Hub/main/scripts/replace-body.js, requires-body=true, max-size=-1, timeout=30, argument=%22vip_pop_up%22%3A0-%3E%22vip_pop_up%22%3A2
-# HAR entry 17：AdMobileService.MatchPlacement 返回 ad_open=1；仅关闭该广告位开关
-replaceBody = type=http-response, pattern=^https:\/\/gw\.xiaocantech\.com\/rpc, script-path=https://raw.githubusercontent.com/Script-Hub-Org/Script-Hub/main/scripts/replace-body.js, requires-body=true, max-size=-1, timeout=30, argument=%22ad_open%22%3A1-%3E%22ad_open%22%3A0
 
 # > Zhihu
 zhihu_openads = type=http-response, pattern=^https?:\/\/api\.zhihu\.com\/commercial_api.*launch_v2, script-path=https://raw.githubusercontent.com/ddgksf2013/Scripts/refs/heads/master/zhihu_openads.js, requires-body=true, max-size=-1, timeout=60
