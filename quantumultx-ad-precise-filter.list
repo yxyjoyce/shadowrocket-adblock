@@ -1,6 +1,19 @@
 # Quantumult X 去广告精确补充分流资源
 # 用法：添加到 [filter_remote]；抖音业务图片 direct 例外需先于泛拒绝资源生效。
 
+# 睿博士（P6SLite）：抓包确认返回广告创意、落地页和监测；不包含 p6sai 业务接口
+host, ad.shunchangzhixing.com, reject
+host, inner.shunchangzhixing.com, reject
+host, admin.hzjizhun.cn, reject
+host, static.shunchangzhixing.com, reject
+
+# 睿博士：本次抓包确认的广告 SDK 投放端点
+host, sdk.1rtb.net, reject
+host, s.1rtb.net, reject
+host, sdk.zhangyuyidong.cn, reject
+host, adx-cfg-u1.ubixioe.com, reject
+host, entry-su1.ubixioe.com, reject
+
 # 红果：日志确认的下一集广告域名
 host, adx-ad-prod.wkanx.com, reject
 

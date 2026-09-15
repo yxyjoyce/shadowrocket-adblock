@@ -18,6 +18,13 @@ DOMAIN-SUFFIX,adlog-ztjy.szy.cn,REJECT
 DOMAIN,zlsdk.1rtb.net,REJECT
 DOMAIN,sdk.1rtb.net,REJECT
 
+# > 睿博士（P6SLite）广告链
+# 2026-09-15 Quantumult X HTTP 分析确认：仅拦截返回广告素材、落地页及监测的 SDK 主机。
+DOMAIN,ad.shunchangzhixing.com,REJECT
+DOMAIN,inner.shunchangzhixing.com,REJECT
+DOMAIN,admin.hzjizhun.cn,REJECT
+DOMAIN,static.shunchangzhixing.com,REJECT
+
 # > 红果短剧广告
 # 保留必要的图片放行，避免素材加载异常
 DOMAIN,p3-ad-sign.byteimg.com,DIRECT
