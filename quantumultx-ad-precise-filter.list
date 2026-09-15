@@ -18,6 +18,20 @@ host, entry-su1.ubixioe.com, reject
 host, cdn-new-ad.wtzw.com, reject
 host, a6-remad.qm989.com, reject
 
+# 七猫：新 HAR 确认的内嵌 Pangle 直播广告配置、素材与 CDN 回源
+host, webcast-open.douyin.com, reject
+host, webcast5-open-lf.douyin.com, reject
+host, is.snssdk.com, reject
+host, gecko.zijieapi.com, reject
+host, vod-license-m.volccdn.com, reject
+host, lf9-webcast-cdn-tos-ncdn.bytegecko.com, reject
+host, n98-lf-webcast-cdn-tos-ncdn.bytegecko.com, reject
+host, p3-sign.douyinpic.com, reject
+host, p26-sign.douyinpic.com, reject
+host-suffix, bjmxy.net, reject
+host-suffix, ydycdn.com, reject
+host-suffix, dahhxxttxs.com, reject
+
 # 红果：日志确认的下一集广告域名
 host, adx-ad-prod.wkanx.com, reject
 

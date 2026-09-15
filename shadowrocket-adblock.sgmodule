@@ -179,6 +179,17 @@ DOMAIN,mssdk.zijieapi.com,REJECT
 DOMAIN,timon.zijieapi.com,REJECT
 DOMAIN,vcs.zijieapi.com,REJECT
 
+# 七猫：2026-09-15 HAR 确认的内嵌 Pangle 直播广告配置、素材与 CDN 回源
+DOMAIN,webcast5-open-lf.douyin.com,REJECT
+DOMAIN,gecko.zijieapi.com,REJECT
+DOMAIN,vod-license-m.volccdn.com,REJECT
+DOMAIN,lf9-webcast-cdn-tos-ncdn.bytegecko.com,REJECT-DROP
+DOMAIN,n98-lf-webcast-cdn-tos-ncdn.bytegecko.com,REJECT-DROP
+DOMAIN,p3-sign.douyinpic.com,REJECT-DROP
+DOMAIN,p26-sign.douyinpic.com,REJECT-DROP
+DOMAIN-SUFFIX,bjmxy.net,REJECT-DROP
+DOMAIN-SUFFIX,ydycdn.com,REJECT-DROP
+
 # 合并来源: RedBook.srmodule
 AND,((PROTOCOL,UDP),(DST-PORT,443),(DOMAIN-SUFFIX,xiaohongshu.com)),REJECT
 
