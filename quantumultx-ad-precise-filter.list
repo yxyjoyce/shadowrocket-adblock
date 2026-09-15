@@ -17,6 +17,7 @@ host, entry-su1.ubixioe.com, reject
 # 七猫：HAR 确认的章节中段/底部广告素材与广告投放引擎
 host, cdn-new-ad.wtzw.com, reject
 host, a6-remad.qm989.com, reject
+host, ad.wtzw.com, reject
 
 # 七猫：新 HAR 确认的内嵌 Pangle 直播广告配置、素材与 CDN 回源
 host, webcast-open.douyin.com, reject
