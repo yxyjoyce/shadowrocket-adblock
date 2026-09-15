@@ -1457,6 +1457,8 @@ replaceBody = type=http-response, pattern=^https?:\/\/apps\.workair\.cn\/app\/ve
 # > xiaocanhuishenghuo
 # 恢复小蚕 /rpc 响应中的开屏弹窗字段处理
 replaceBody = type=http-response, pattern=^https:\/\/gw\.xiaocantech\.com\/rpc, script-path=https://raw.githubusercontent.com/Script-Hub-Org/Script-Hub/main/scripts/replace-body.js, requires-body=true, max-size=-1, timeout=30, argument=%22vip_pop_up%22%3A0-%3E%22vip_pop_up%22%3A2
+# 仅将广告位响应的 data.ad_open 从 1 改为 0，保留其余 JSON 字段和接口结构
+http-response-jq ^https:\/\/gw\.xiaocantech\.com\/rpc 'if (getpath(["data","ad_open"]) == 1) then setpath(["data","ad_open"]; 0) else . end'
 
 # > Zhihu
 zhihu_openads = type=http-response, pattern=^https?:\/\/api\.zhihu\.com\/commercial_api.*launch_v2, script-path=https://raw.githubusercontent.com/ddgksf2013/Scripts/refs/heads/master/zhihu_openads.js, requires-body=true, max-size=-1, timeout=60
