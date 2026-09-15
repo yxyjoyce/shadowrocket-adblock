@@ -303,6 +303,8 @@ DOMAIN-SUFFIX,api.touch-moblie.com,REJECT
 # 精确拦截广告配置和广告内容接口，不拦截小蚕业务接口
 ^https?:\/\/ad\.baihemob\.com\/(infoConfig|checkCd|setGInfo)\/ - reject-200
 ^https?:\/\/inner\.baihemob\.com\/ad2(\/|\?|$) - reject-200
+# 小蚕广告 SDK 的 ByteDance playable 包；仅匹配广告路径
+^https?:\/\/lf-cdn-tos\.bytescm\.com\/obj\/static\/ad\/play-comp\/.* - reject-200
 ^https?:\/\/iyes\.youku\.com\/uts/v\d\/start - reject-200
 # > csdn
 ^https?:\/\/app-gw\.csdn\.net\/silkroad-api\/api\/v\d\/assemble\/list\/pub\/channel\/app_open_screen_ad - reject-200
@@ -1472,8 +1474,6 @@ replaceBody = type=http-response, pattern=^https?:\/\/apps\.workair\.cn\/app\/ve
 replaceBody = type=http-response, pattern=^https:\/\/gw\.xiaocantech\.com\/rpc, script-path=https://raw.githubusercontent.com/Script-Hub-Org/Script-Hub/main/scripts/replace-body.js, requires-body=true, max-size=-1, timeout=30, argument=%22vip_pop_up%22%3A0-%3E%22vip_pop_up%22%3A2
 # HAR entry 17：AdMobileService.MatchPlacement 返回 ad_open=1；仅关闭该广告位开关
 replaceBody = type=http-response, pattern=^https:\/\/gw\.xiaocantech\.com\/rpc, script-path=https://raw.githubusercontent.com/Script-Hub-Org/Script-Hub/main/scripts/replace-body.js, requires-body=true, max-size=-1, timeout=30, argument=%22ad_open%22%3A1-%3E%22ad_open%22%3A0
-# 小蚕广告 SDK 的 ByteDance playable 包；仅匹配广告路径
-^https?:\/\/lf-cdn-tos\.bytescm\.com\/obj\/static\/ad\/play-comp\/.* - reject-200
 
 # > Zhihu
 zhihu_openads = type=http-response, pattern=^https?:\/\/api\.zhihu\.com\/commercial_api.*launch_v2, script-path=https://raw.githubusercontent.com/ddgksf2013/Scripts/refs/heads/master/zhihu_openads.js, requires-body=true, max-size=-1, timeout=60
