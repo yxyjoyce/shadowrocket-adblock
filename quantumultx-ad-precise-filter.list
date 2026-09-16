@@ -25,8 +25,6 @@ host, webcast5-open-lf.douyin.com, reject
 host, is.snssdk.com, reject
 host, gecko.zijieapi.com, reject
 host, vod-license-m.volccdn.com, reject
-host, lf9-webcast-cdn-tos-ncdn.bytegecko.com, reject
-host, n98-lf-webcast-cdn-tos-ncdn.bytegecko.com, reject
 host-suffix, bjmxy.net, reject
 host-suffix, ydycdn.com, reject
 host-suffix, dahhxxttxs.com, reject
