@@ -1365,7 +1365,9 @@ http-response-jq ^https?:\/\/api\.weibo\.cn\/\d\/ug\/checkin\/stream '.items |= 
 
 [Script]
 # > YouTube API response body
-youtubeResponse = type=http-response, pattern=^https?:\/\/youtubei\.googleapis\.com\/youtubei\/v1\/(browse|next|player|search|reel\/reel_watch_sequence|guide|account\/get_setting|get_watch)(\?(.*))?$, script-path=https://raw.githubusercontent.com/yxyjoyce/shadowrocket-adblock/main/scripts/youtube.response.shadowrocket.js, requires-body=1, max-size=-1, binary-body-mode=1, engine=webview
+youtubeResponse = type=http-response, pattern=^https?:\/\/youtubei\.googleapis\.com\/youtubei\/v1\/(browse|next|player|search|reel\/reel_watch_sequence|guide|account\/get_setting|get_watch|log_event|config)(\?(.*))?$, script-path=https://raw.githubusercontent.com/yxyjoyce/shadowrocket-adblock/main/scripts/youtube.response.shadowrocket.js, requires-body=1, max-size=-1, binary-body-mode=1, engine=webview
+youtubeRequestInit = type=http-request, pattern=^https?:\/\/[\w-]+\.googlevideo\.com\/initplayback.+&ack.*, script-path=https://raw.githubusercontent.com/Maasea/sgmodule/master/Script/Youtube/youtube.request.js, requires-body=1, max-size=-1, binary-body-mode=1, engine=webview
+youtubeRequestLogEvent = type=http-request, pattern=^https:\/\/youtubei\.googleapis\.com\/youtubei\/v1\/log_event(?:\?.*)?$, script-path=https://raw.githubusercontent.com/Maasea/sgmodule/master/Script/Youtube/youtube.request.js, engine=webview
 # > 369chuxing
 dict = type=http-response, pattern=^https?:\/\/api\.369cx\.cn\/v\d\/Splash\/GetSplashAd, script-path=https://raw.githubusercontent.com/ddgksf2013/Scripts/refs/heads/master/dict.js, requires-body=true, max-size=-1, timeout=60
 
