@@ -3,9 +3,6 @@
 #!category=ddgksf2013
 
 [Rule]
-# > YouTube 视频广告的 UDP/443 回退保护（仅 YouTube 相关主机）
-AND,((PROTOCOL,UDP),(DST-PORT,443),(DOMAIN-SUFFIX,googlevideo.com)),REJECT
-AND,((PROTOCOL,UDP),(DST-PORT,443),(DOMAIN,youtubei.googleapis.com)),REJECT
 # > 12306
 DOMAIN,ad.12306.cn,DIRECT
 DOMAIN-SUFFIX,shenshiads.com,REJECT
@@ -197,12 +194,6 @@ DOMAIN,sdkapp.uve.weibo.com,DIRECT
 DOMAIN,adstrategy.biz.weibo.com,REJECT
 DOMAIN-SUFFIX,api.touch-moblie.com,REJECT
 [URL Rewrite]
-# > YouTube 视频广告与统计请求（QX 语义映射）
-(^https?:\/\/[\w-]+\.googlevideo\.com\/(?!dclk_video_ads).+?)&ctier=L(&.+?),ctier,(.+) $1$2$3 302
-^https?:\/\/[\w-]+\.googlevideo\.com\/(?!(dclk_video_ads|videoplayback\?)).+&oad - reject-200
-^https?:\/\/(www|s)\.youtube\.com\/api\/stats\/ads - reject-200
-^https?:\/\/(www|s)\.youtube\.com\/(pagead|ptracking) - reject-200
-^https?:\/\/s\.youtube\.com\/api\/stats\/qoe\?adcontext - reject-200
 # > Version
 ^https?:\/\/2026.06.29/c415/v2.0.647 - reject-200
 # > 10
@@ -1356,10 +1347,6 @@ http-response-jq ^https?:\/\/api\.weibo\.cn\/\d\/ug\/checkin\/stream '.items |= 
 ^https?:\/\/ap\.(dongqiudi|dongdianqiu)\.com\/plat\/v4 data-type=file data="https://raw.githubusercontent.com/ddgksf2013/Scripts/master/dongqiudi.js"
 
 [Script]
-# > YouTube API response body
-youtubeResponse = type=http-response, pattern=^https?:\/\/youtubei\.googleapis\.com\/youtubei\/v1\/(browse|next|player|search|reel\/reel_watch_sequence|guide|account\/get_setting|get_watch|log_event|config)(\?(.*))?$, script-path=https://raw.githubusercontent.com/yxyjoyce/shadowrocket-adblock/main/scripts/youtube.response.shadowrocket.js, requires-body=1, max-size=-1, binary-body-mode=1, engine=webview
-youtubeRequestInit = type=http-request, pattern=^https?:\/\/[\w-]+\.googlevideo\.com\/initplayback.+&ack.*, script-path=https://raw.githubusercontent.com/Maasea/sgmodule/master/Script/Youtube/youtube.request.js, requires-body=1, max-size=-1, binary-body-mode=1, engine=webview
-youtubeRequestLogEvent = type=http-request, pattern=^https:\/\/youtubei\.googleapis\.com\/youtubei\/v1\/log_event(?:\?.*)?$, script-path=https://raw.githubusercontent.com/Maasea/sgmodule/master/Script/Youtube/youtube.request.js, engine=webview
 # > 369chuxing
 dict = type=http-response, pattern=^https?:\/\/api\.369cx\.cn\/v\d\/Splash\/GetSplashAd, script-path=https://raw.githubusercontent.com/ddgksf2013/Scripts/refs/heads/master/dict.js, requires-body=true, max-size=-1, timeout=60
 
@@ -1597,7 +1584,6 @@ NoAds = type=http-response, pattern=^https?:\/\/h\.app\.coc\.10086\.cn\/biz-oran
 NoAds = type=http-response, pattern=^https?:\/\/h\.app\.coc\.10086\.cn\/biz-orange\/DH\/navigation\/getNavigationNewInfo, script-path=https://raw.githubusercontent.com/Yuheng0101/X/main/Scripts/ChinaMobile/NoAds.js, requires-body=true, max-size=-1, timeout=60
 NoAds = type=http-response, pattern=^https?:\/\/client\.app\.coc\.10086\.cn\/biz-orange\/DN\/friendShake\/getShakeList, script-path=https://raw.githubusercontent.com/Yuheng0101/X/main/Scripts/ChinaMobile/NoAds.js, requires-body=true, max-size=-1, timeout=60
 [MITM]
-hostname = %APPEND% -redirector*.googlevideo.com, *.googlevideo.com, www.youtube.com, s.youtube.com, youtubei.googleapis.com
 h2 = true
 hostname = %APPEND% ads-bid.leadmoad.com, ad-api.adn-plus.com.cn, adprolink.xwpbj.com, de.ad.gameley.com, sdkapi.richmob.cn, adsdk.richmob.cn, sdkconf.adbiding.com, bid.adbiding.com
 hostname = %APPEND% vdn-ad.vzuu.com, nexorax.datads.cn, a6-remad.qm989.com, cdn-new-ad.wtzw.com, api.wtzw.com
