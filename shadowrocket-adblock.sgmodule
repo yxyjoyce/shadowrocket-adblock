@@ -78,11 +78,6 @@ IP-CIDR,223.109.238.56/32,REJECT-DROP,no-resolve
 DOMAIN,optimus-ads-ykx.amap.com,REJECT
 DOMAIN,optimus-ads.amap.com,REJECT
 
-# > 航旅纵横去开屏（合并自附件）
-URL-REGEX,^https:\/\/umestartup\.umetrip\.com\/gateway\/api\/umetrip\/native(?:\?.*)?$,REJECT-200
-URL-REGEX,^https:\/\/oss\.umetrip\.com\/fs\/advert\/polite\/,REJECT-200
-URL-REGEX,^https:\/\/oss\.umetrip\.com\/fs\/advert\/icon\/,REJECT-200
-
 # 合并来源: 2a180322630c512a74e5c55bc06db80b.sgmodule
 DOMAIN,adashx.m.taobao.com,REJECT
 DOMAIN,ossgw.alicdn.com,REJECT
@@ -428,9 +423,13 @@ https://fbchina.flipchina.cn/v2/ad/query/* - reject-200
 # > huangyouxiangji
 ^https?:\/\/api4\.bybutter\.com\/v\d\/app\/placements\/\d\/advertisements - reject-200
 # > hanglvzongheng
-^https?:\/\/(discardrp|startup)\.umetrip\.com\/gateway\/api\/umetrip\/native - reject-200
-^https?:\/\/appmsg\.umetrip\.com\/gateway\/api\/umetrip\/native - reject-200
-^https?:\/\/sns\.umetrip\.com\/gateway\/api\/umetrip\/native - reject-200
+# native 接口预期 JSON 对象，使用 reject-dict；广告素材路径使用 reject-200
+^https?:\/\/(discardrp|startup)\.umetrip\.com\/gateway\/api\/umetrip\/native(?:\?.*)?$ - reject-dict
+^https?:\/\/umestartup\.umetrip\.com\/gateway\/api\/umetrip\/native(?:\?.*)?$ - reject-dict
+^https?:\/\/appmsg\.umetrip\.com\/gateway\/api\/umetrip\/native(?:\?.*)?$ - reject-dict
+^https?:\/\/sns\.umetrip\.com\/gateway\/api\/umetrip\/native(?:\?.*)?$ - reject-dict
+^https?:\/\/oss\.umetrip\.com\/fs\/advert\/polite\/ - reject-200
+^https?:\/\/oss\.umetrip\.com\/fs\/advert\/icon\/ - reject-200
 # > hangzhougongjiao
 ^https?:\/\/m.ibuscloud.com\/v2\/app\/getStartPage - reject-200
 # > haohaozhu
