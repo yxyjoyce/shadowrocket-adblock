@@ -70,9 +70,6 @@ DOMAIN,p3-aio.ecombdimg.com,DIRECT
 # 直播/电商广告素材
 # 抖音评论头像业务图片精确放行
 DOMAIN,p3-webcast.douyinpic.com,DIRECT
-DOMAIN,p3-webcast.douyinpic.com,REJECT-DROP
-DOMAIN-WILDCARD,*-item.ecombdimg.com,REJECT-DROP
-DOMAIN-WILDCARD,*-aio.ecombdimg.com,REJECT-DROP
 
 # 日志中发现的 IP 直连 FLV 广告流
 IP-CIDR,223.109.238.56/32,REJECT-DROP,no-resolve
@@ -158,8 +155,6 @@ DOMAIN,lf-normal-gr-sourcecdn.bytegecko.com,REJECT
 DOMAIN,lf-webcast-gr-sourcecdn.bytegecko.com,REJECT
 DOMAIN,p3-developer.bytemaimg.com,REJECT
 DOMAIN,webcast-open.douyin.com,REJECT
-DOMAIN,p11-webcast-sign.douyinpic.com,REJECT
-DOMAIN,p3-webcast-sign.douyinpic.com,REJECT
 DOMAIN,log3-applog.fqnovel.com,REJECT
 DOMAIN,log5-applog.fqnovel.com,REJECT
 DOMAIN,mon11-misc-lq.fqnovel.com,REJECT
