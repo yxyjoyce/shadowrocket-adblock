@@ -423,11 +423,9 @@ https://fbchina.flipchina.cn/v2/ad/query/* - reject-200
 # > huangyouxiangji
 ^https?:\/\/api4\.bybutter\.com\/v\d\/app\/placements\/\d\/advertisements - reject-200
 # > hanglvzongheng
-# native 接口预期 JSON 对象，使用 reject-dict；广告素材路径使用 reject-200
-^https?:\/\/(discardrp|startup)\.umetrip\.com\/gateway\/api\/umetrip\/native(?:\?.*)?$ - reject-dict
-^https?:\/\/umestartup\.umetrip\.com\/gateway\/api\/umetrip\/native(?:\?.*)?$ - reject-dict
-^https?:\/\/appmsg\.umetrip\.com\/gateway\/api\/umetrip\/native(?:\?.*)?$ - reject-dict
-^https?:\/\/sns\.umetrip\.com\/gateway\/api\/umetrip\/native(?:\?.*)?$ - reject-dict
+# 与 QX 已验证行为一致：native 与素材均返回 HTTP 200 空响应
+^https?:\/\/(discardrp|startup|appmsg|sns)\.umetrip\.com\/gateway\/api\/umetrip\/native - reject-200
+^https?:\/\/umestartup\.umetrip\.com\/gateway\/api\/umetrip\/native(?:\?.*)?$ - reject-200
 ^https?:\/\/oss\.umetrip\.com\/fs\/advert\/polite\/ - reject-200
 ^https?:\/\/oss\.umetrip\.com\/fs\/advert\/icon\/ - reject-200
 # > hangzhougongjiao
@@ -1473,8 +1471,7 @@ replaceBody = type=http-response, pattern=^https?:\/\/lcen\.xiaote\.net\/api\/gr
 replaceBody = type=http-response, pattern=^https?:\/\/apps\.workair\.cn\/app\/version, script-path=https://raw.githubusercontent.com/Script-Hub-Org/Script-Hub/main/scripts/replace-body.js, requires-body=true, max-size=-1, timeout=30, argument=ads%22-%3Eddgksf2013%22
 
 # > xiaocanhuishenghuo
-replaceBody = type=http-response, pattern=^https:\/\/gw\.xiaocantech\.com\/rpc, script-path=https://raw.githubusercontent.com/Script-Hub-Org/Script-Hub/main/scripts/replace-body.js, requires-body=true, max-size=-1, timeout=30, argument=%22vip_pop_up%22%3A0-%3E%22vip_pop_up%22%3A2
-http-response-jq ^https:\/\/gw\.xiaocantech\.com\/rpc 'if (getpath(["data","ad_open"]) == 1) then setpath(["data","ad_open"]; 0) else . end'
+xiaocanMatchPlacement = type=http-response, pattern=^https?:\/\/gw\.xiaocantech\.com\/rpc(?:\?.*)?$, script-path=https://raw.githubusercontent.com/yxyjoyce/shadowrocket-adblock/main/xiaocan-matchplacement-shadowrocket.js, requires-body=true, max-size=-1, timeout=30, engine=jsc
 
 # > Zhihu
 zhihu_openads = type=http-response, pattern=^https?:\/\/api\.zhihu\.com\/commercial_api.*launch_v2, script-path=https://raw.githubusercontent.com/ddgksf2013/Scripts/refs/heads/master/zhihu_openads.js, requires-body=true, max-size=-1, timeout=60
