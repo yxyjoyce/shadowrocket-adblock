@@ -1,0 +1,101 @@
+#!name=去广告精确补充-Debug（独立）
+#!desc=从独立 Quantumult X rewrite/filter 资源转换的 Shadowrocket 调试模块；仅观测脚本，不与主模块同时启用
+#!category=ddgksf2013
+
+# 本模块会覆盖当前配置中的同类设置。仅在活跃配置已开启 HTTPS 解密、信任 MITM 证书，并按需启用 HTTP/2 MITM 时使用。
+# 本模块是独立 Debug 方案，不得与主广告模块或同源 QX 资源同时启用；未设置 h2 参数，也不新增 UDP/443/QUIC 拦截。
+
+[Rule]
+# QX filter.list：direct 例外置前，保持原资源顺序语义。
+DOMAIN,p3-item.ecombdimg.com,DIRECT
+DOMAIN,p9-item.ecombdimg.com,DIRECT
+DOMAIN,p26-item.ecombdimg.com,DIRECT
+DOMAIN,p3-aio.ecombdimg.com,DIRECT
+DOMAIN,p3-webcast.douyinpic.com,DIRECT
+DOMAIN,ad.shunchangzhixing.com,REJECT
+DOMAIN,inner.shunchangzhixing.com,REJECT
+DOMAIN,admin.hzjizhun.cn,REJECT
+DOMAIN,static.shunchangzhixing.com,REJECT
+DOMAIN,sdk.1rtb.net,REJECT
+DOMAIN,s.1rtb.net,REJECT
+DOMAIN,sdk.zhangyuyidong.cn,REJECT
+DOMAIN,adx-cfg-u1.ubixioe.com,REJECT
+DOMAIN,entry-su1.ubixioe.com,REJECT
+DOMAIN,cdn-new-ad.wtzw.com,REJECT
+DOMAIN,a6-remad.qm989.com,REJECT
+DOMAIN,ad.wtzw.com,REJECT
+DOMAIN,webcast-open.douyin.com,REJECT
+DOMAIN,webcast5-open-lf.douyin.com,REJECT
+DOMAIN,is.snssdk.com,REJECT
+DOMAIN,gecko.zijieapi.com,REJECT
+DOMAIN,vod-license-m.volccdn.com,REJECT
+DOMAIN,lf9-webcast-cdn-tos-ncdn.bytegecko.com,REJECT
+DOMAIN,n98-lf-webcast-cdn-tos-ncdn.bytegecko.com,REJECT
+DOMAIN,p3-sign.douyinpic.com,REJECT
+DOMAIN,p26-sign.douyinpic.com,REJECT
+DOMAIN-SUFFIX,bjmxy.net,REJECT
+DOMAIN-SUFFIX,ydycdn.com,REJECT
+DOMAIN-SUFFIX,dahhxxttxs.com,REJECT
+DOMAIN,adx-ad-prod.wkanx.com,REJECT
+
+[URL Rewrite]
+# QX url reject 系列逐条保留原生动作：reject-200、reject-dict 或 reject；不新增泛域名拒绝。
+^https?:\/\/ad\.baihemob\.com\/(infoConfig|checkCd|setGInfo)\/ - reject-200
+^https?:\/\/inner\.baihemob\.com\/ad2(\/|\?|$) - reject-200
+^https?:\/\/ads-bid\.leadmoad\.com\/api\/adx\/(?:server|config) - reject-200
+^https?:\/\/ads-bid\.leadmoad\.com\/api\/v1\/ad\/config - reject-200
+^https?:\/\/ad-api\.adn-plus\.com\.cn\/mb\/sdk1\/json - reject-200
+^https?:\/\/adprolink\.xwpbj\.com\/mediation\/sdk\/getPlacementMappingIos - reject-200
+^https?:\/\/de\.ad\.gameley\.com\/delivery\/request\/getad\/(?:config|adn) - reject-200
+^https?:\/\/sdkapi\.richmob\.cn\/sylas\/sdk\/v2\/ads\/conf - reject-200
+^https?:\/\/adsdk\.richmob\.cn\/sdk\/rtb\/v3 - reject-200
+^https?:\/\/sdkconf\.adbiding\.com\/sdk_config\/v3\/config - reject-200
+^https?:\/\/bid\.adbiding\.com\/bid - reject-200
+^https?:\/\/vdn-ad\.vzuu\.com\/HD\/ad_bidding_ob\/.*(?:\?.*)?$ - reject-200
+^https?:\/\/nexorax\.datads\.cn\/dsp-files\/.*\.(?:jpg|png)(?:\?.*)?$ - reject-200
+^https?:\/\/p11-sign\.douyinpic\.com\/tos-cn-v-0051\/.*~tplv-noop\.image(?:\?.*)?$ - reject-200
+^https?:\/\/lf-cdn-tos\.bytescm\.com\/obj\/static\/ad\/play-comp\/playable-component-sdk\/package\.ugen\.json(?:\?.*)?$ - reject-200
+^https?:\/\/p6sops-cn\.p6sai\.com:2390\/static\/advert\.json(?:\?.*)?$ - reject-200
+^https:\/\/api-cfg\.wtzw\.com\/v\d\/splash\/ - reject-dict
+^https:\/\/api-cfg\.wtzw\.com\/v\d\/adv\/ - reject
+^https:\/\/api-cfg\.wtzw\.com\/v\d\/offline-adv\/index - reject-dict
+^https:\/\/api-cfg\.wtzw\.com\/v\d\/operation\/index\?ad_personal_switch - reject-dict
+^https:\/\/api-cfg\.wtzw\.com\/v\d\/reward\/ - reject
+^https:\/\/api-bc\.wtzw\.com\/api\/v4\/search\/dispose - reject-dict
+^https:\/\/api-bc\.wtzw\.com\/api\/v\d\/book-store\/config - reject-dict
+^https:\/\/api-bc\.wtzw\.com\/api\/v\d\/book-store\/push-book - reject-dict
+^https:\/\/api-bc\.wtzw\.com\/api\/v\d\/operation - reject-dict
+^https:\/\/api-gw\.wtzw\.com\/welf\/app\/v\d\/task\/red-packet - reject-dict
+^https?:\/\/a6-remad\.qm989\.com\/v\d\/(?:get-splash|get-contract|preload|get-bid-price|get-ads)\/index(?:\?.*)?$ - reject-200
+^https?:\/\/cdn-new-ad\.wtzw\.com\/commerce\/images\/offline\/(?:chapter|bottom)_\d+\.jpg(?:\?.*)?$ - reject-200
+^https?:\/\/cn-acs\.m\.cainiao\.com\/gw\/mtop\.cainiao\.guoguo\.nbnetflow\.ads\.(show|mshow)\.cn\/ - reject-200
+^https?:\/\/guoguo-cdn\.cainiao\.com\/cnn_guide_ads\/.*\/guide_ads_main_page\/bundle\.zip - reject-200
+^https?:\/\/netflow-mtop\.cainiao\.com\/gw\/mtop\.cainiao\.guoguo\.nbnetflow\.ads\.(batch\.show\.v2|index|mshow|show)\.cn\/ - reject-dict
+^https?:\/\/umestartup\.umetrip\.com\/gateway\/api\/umetrip\/native(?:\?.*)?$ - reject-200
+^https?:\/\/(discardrp|startup|appmsg|sns)\.umetrip\.com\/gateway\/api\/umetrip\/native - reject-200
+^https?:\/\/oss\.umetrip\.com\/fs\/advert\/polite\/ - reject-200
+^https?:\/\/oss\.umetrip\.com\/fs\/advert\/icon\/ - reject-200
+^https?:\/\/a\.cpic\.com\.cn\/api\/app\/appservice\/configCenter\/getFloorStartOpenPage.* - reject-200
+^https?:\/\/a\.cpic\.com\.cn\/api\/app\/appservice\/configCenter\/getFloorGlobalWindows - reject-dict
+^https?:\/\/tklife\.mobile\.taikang\.com\/bu-homepage\/popups\/common\/v2 - reject-dict
+^https?:\/\/tklife\.mobile\.taikang\.com\/bu-digistrathub\/data-platform\/advertise\/recommend\/native\/getRecommendAds - reject-dict
+^https?:\/\/tklife\.mobile\.taikang\.com\/bu-digistrathub\/data-platform\/advertise\/recommend\/native\/getLaunchRecommendAds.* - reject-200
+^https?:\/\/m\.ctrip\.com\/restapi\/soa2\/\d+\/scjson\/tripAds - reject-200
+^https?:\/\/m\.ctrip\.com\/restapi\/soa2\/13916\/json\/tripAds.* - reject-200
+^https?:\/\/ma-adx\.ctrip\.com\/_ma\.gif.* - reject-200
+^https?:\/\/app-sh\.catlinks\.cn\/api\/token\/banner\/listOnDevicePage.* - reject-200
+^https?:\/\/static\.catlinks\.cn\/image\/exchange20260807\.jpg.* - reject-200
+
+[Body Rewrite]
+# QX jsonjq-response-body 的 Shadowrocket 原生等价写法；仅这两条会修改响应 JSON。
+http-response-jq ^https?:\/\/api\.wtzw\.com\/api\/free\/dd(?:\?.*)?$ '.data.ad={}'
+http-response-jq ^https?:\/\/api\.qeeniao\.com\/nap\/ad '.data={}'
+
+[Script]
+# 两条脚本均 requires-body、无限 body 上限、30 秒超时；只记录并原样返回，不修改响应。
+xiaocan_debug = type=http-response, pattern=^https?:\/\/gw\.xiaocantech\.com\/rpc(?:\?.*)?$, script-path=https://raw.githubusercontent.com/yxyjoyce/shadowrocket-adblock/main/xiaocan-matchplacement-shadowrocket-debug.js, requires-body=true, max-size=-1, timeout=30, engine=jsc
+qimao_debug = type=http-response, pattern=^https?:\/\/cgcr\.wtzw\.com\/client\/api\/v1\/config(?:\?.*)?$, script-path=https://raw.githubusercontent.com/yxyjoyce/shadowrocket-adblock/main/qimao-qm-focus-shadowrocket-debug.js, requires-body=true, max-size=-1, timeout=30, engine=jsc
+
+[MITM]
+# 必须使用 %APPEND%，并保留独立 QX rewrite 资源的完整 hostname 清单。
+hostname = %APPEND% ad.baihemob.com, inner.baihemob.com, gw.xiaocantech.com, p6sops-cn.p6sai.com, api.wtzw.com, api-cfg.wtzw.com, api-bc.wtzw.com, api-gw.wtzw.com, cgcr.wtzw.com, a6-remad.qm989.com, cdn-new-ad.wtzw.com, vdn-ad.vzuu.com, nexorax.datads.cn, p11-sign.douyinpic.com, lf-cdn-tos.bytescm.com, ads-bid.leadmoad.com, ad-api.adn-plus.com.cn, adprolink.xwpbj.com, de.ad.gameley.com, sdkapi.richmob.cn, adsdk.richmob.cn, sdkconf.adbiding.com, bid.adbiding.com, cn-acs.m.cainiao.com, guoguo-cdn.cainiao.com, netflow-mtop.cainiao.com, umestartup.umetrip.com, discardrp.umetrip.com, startup.umetrip.com, appmsg.umetrip.com, sns.umetrip.com, oss.umetrip.com, a.cpic.com.cn, tklife.mobile.taikang.com, m.ctrip.com, ma-adx.ctrip.com, app-sh.catlinks.cn, static.catlinks.cn, api.qeeniao.com
