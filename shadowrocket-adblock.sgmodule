@@ -114,9 +114,7 @@ URL-REGEX,"^http:\/\/\w{32}\.jddebug\.com\/diagnose\?",REJECT
 
 # 合并来源: 3cfd243770a6008cb3bbc627fe946c5c.sgmodule
 DOMAIN,cdn-ad.wtzw.com,REJECT
-DOMAIN,cdn-new-ad.wtzw.com,REJECT
 # 七猫：日志确认的开屏/章节插入广告投放引擎
-DOMAIN,a6-remad.qm989.com,REJECT
 # 七猫：启动服务表将广告服务指向该主机
 DOMAIN,ad.wtzw.com,REJECT
 DOMAIN-SUFFIX,gdt.qq.com,REJECT
