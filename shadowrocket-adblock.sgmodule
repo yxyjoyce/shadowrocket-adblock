@@ -1472,10 +1472,8 @@ replaceBody = type=http-response, pattern=^https?:\/\/lcen\.xiaote\.net\/api\/gr
 replaceBody = type=http-response, pattern=^https?:\/\/apps\.workair\.cn\/app\/version, script-path=https://raw.githubusercontent.com/Script-Hub-Org/Script-Hub/main/scripts/replace-body.js, requires-body=true, max-size=-1, timeout=30, argument=ads%22-%3Eddgksf2013%22
 
 # > xiaocanhuishenghuo
-# 保留既有小蚕 vip_pop_up 处理
-replaceBody = type=http-response, pattern=^https:\/\/gw\.xiaocantech\.com\/rpc, script-path=https://raw.githubusercontent.com/Script-Hub-Org/Script-Hub/main/scripts/replace-body.js, requires-body=true, max-size=-1, timeout=30, argument=%22vip_pop_up%22%3A0-%3E%22vip_pop_up%22%3A2
-# 仅按确认的响应结构处理广告位；不满足条件的 /rpc 响应原样返回
-http-response-jq ^https:\/\/gw\.xiaocantech\.com\/rpc 'if ((.status? | type) == "object" and .status.code? == 0 and (.data? | type) == "object" and .data.ad_open? == 1) then .data.ad_open = 0 | if (.data | has("ad_type")) then .data.ad_type = [] else . end | if (.data | has("ad_source")) then .data.ad_source = [] else . end | if (.data | has("android_ad_id")) then .data.android_ad_id = "" else . end | if (.data | has("android_slot_id")) then .data.android_slot_id = "" else . end | if (.data | has("ios_ad_id")) then .data.ios_ad_id = "" else . end | if (.data | has("ios_slot_id")) then .data.ios_slot_id = "" else . end | if (.data | has("ad_photo")) then .data.ad_photo = "" else . end else . end'
+# 单脚本处理：MatchPlacement 精确改广告位；其他 RPC 仅兼容既有 vip_pop_up 文本替换
+xiaocanMatchPlacement = type=http-response, pattern=^https:\/\/gw\.xiaocantech\.com\/rpc(?:\?.*)?$, script-path=https://raw.githubusercontent.com/yxyjoyce/shadowrocket-adblock/main/xiaocan-matchplacement-shadowrocket.js, requires-body=true, max-size=-1, timeout=30, engine=jsc
 
 # > Zhihu
 zhihu_openads = type=http-response, pattern=^https?:\/\/api\.zhihu\.com\/commercial_api.*launch_v2, script-path=https://raw.githubusercontent.com/ddgksf2013/Scripts/refs/heads/master/zhihu_openads.js, requires-body=true, max-size=-1, timeout=60
