@@ -1046,7 +1046,6 @@ https://new-app-api.ylyk.com/v1/user/myinfo/adviser - reject-200
 ^https?:\/\/ma-adx\.ctrip\.com\/_ma\.gif.* - reject-200
 
 # > 小红书/广告组件去开屏（合并自附件）
-^https?:\/\/wechat\.goddessxzns\.com\/api\/v20\/startup_page\?.* - reject-200
 ^https?:\/\/lf-cdn-tos\.bytescm\.com\/obj\/static\/ad\/play-comp\/playable-component-sdk\/package\.ugen\.json\?.* - reject-200
 
 # > 小蚕/七猫：旧抓包确认的实际开屏素材与广告组件
@@ -1347,6 +1346,9 @@ http-response-jq ^https?:\/\/api\.weibo\.cn\/\d\/ug\/checkin\/stream '.items |= 
 ^https?:\/\/ap\.(dongqiudi|dongdianqiu)\.com\/plat\/v4 data-type=file data="https://raw.githubusercontent.com/ddgksf2013/Scripts/master/dongqiudi.js"
 
 [Script]
+# > 准了 APP：仅处理启动页和星座更新响应
+准了 = type=http-response, pattern=^https?:\/\/wechat\.goddessxzns\.com\/api\/(?:v20\/startup_page|v14\/astro\/update)(?:\?.*)?$, script-path=https://raw.githubusercontent.com/yxyjoyce/shadowrocket-adblock/main/scripts/zhunle-response-shadowrocket.js, requires-body=true, max-size=-1, timeout=30, engine=jsc
+
 # > 369chuxing
 dict = type=http-response, pattern=^https?:\/\/api\.369cx\.cn\/v\d\/Splash\/GetSplashAd, script-path=https://raw.githubusercontent.com/ddgksf2013/Scripts/refs/heads/master/dict.js, requires-body=true, max-size=-1, timeout=60
 
