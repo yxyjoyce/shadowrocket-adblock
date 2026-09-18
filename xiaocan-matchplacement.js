@@ -20,68 +20,62 @@
     return value;
   }
 
-  function isSensitiveHeader(key) {
-    return /(?:authorization|cookie|token|secret|password|credential|session)/i.test(String(key));
+  function clearBatchPlacementResources(payload) {
+    var resources = payload && payload.resources;
+    if (!Array.isArray(resources)) return false;
+    var changed = false;
+    resources.forEach(function (resource) {
+      if (!resource || typeof resource !== "object") return;
+      if (resource.resource_slug === "OPS_POPUP" ||
+          resource.resource_slug === "SHARER_HOME_POPUP") {
+        if (!Array.isArray(resource.value) || resource.value.length !== 0) {
+          resource.value = [];
+          changed = true;
+        }
+      }
+    });
+    return changed;
   }
 
-  function observeBatch(body) {
-    console.log("[Xiaocan] matched BatchMatchPlacement (observe only)");
-    console.log("[Xiaocan] BatchMatchPlacement body.length=" + String(body.length));
-    console.log("[Xiaocan] BatchMatchPlacement body[0:1000]=" + body.slice(0, 1000));
-    try {
-      var payload = JSON.parse(body);
-      console.log("[Xiaocan] BatchMatchPlacement top-level keys=" + JSON.stringify(Object.keys(payload || {})));
-      var data = payload && payload.data;
-      console.log("[Xiaocan] BatchMatchPlacement data keys=" + JSON.stringify(
-        data && typeof data === "object" ? Object.keys(data) : []));
-      var slugs = [];
-      function visit(value) {
-        if (!value || typeof value !== "object") return;
-        if (Array.isArray(value)) {
-          value.forEach(visit);
-          return;
-        }
-        Object.keys(value).forEach(function (key) {
-          var child = value[key];
-          if (key === "resources" && Array.isArray(child)) {
-            child.forEach(function (resource) {
-              if (resource && typeof resource === "object" && resource.resource_slug != null) {
-                slugs.push(String(resource.resource_slug));
-              }
-            });
-          }
-          visit(child);
-        });
-      }
-      visit(data);
-      console.log("[Xiaocan] BatchMatchPlacement resource_slug=" +
-        (slugs.length ? slugs.join(",") : "(none)"));
-    } catch (error) {
-      console.log("[Xiaocan] BatchMatchPlacement JSON parse failed");
+  function clearRedPacketGuide(payload) {
+    if (!payload || typeof payload !== "object" ||
+        !Object.prototype.hasOwnProperty.call(payload, "show_red_packet_guide")) {
+      return false;
     }
+    if (payload.show_red_packet_guide === false) return false;
+    payload.show_red_packet_guide = false;
+    return true;
   }
 
   try {
     var request = (typeof $request === "object" && $request) ? $request : {};
     var headers = (request.headers && typeof request.headers === "object") ? request.headers : {};
-    var safeHeaders = {};
-    Object.keys(headers).forEach(function (key) {
-      safeHeaders[key] = isSensitiveHeader(key) ? "[REDACTED]" : headers[key];
-    });
-
-    console.log("[Xiaocan] script invoked");
-    console.log("[Xiaocan] url=" + String(request.url || ""));
-    console.log("[Xiaocan] request header keys=" + JSON.stringify(Object.keys(headers)));
-    console.log("[Xiaocan] request headers=" + JSON.stringify(safeHeaders));
-
     var methodname = getHeader(headers, "methodname");
     var servername = getHeader(headers, "servername");
-    console.log("[Xiaocan] methodname=" + methodname);
-    console.log("[Xiaocan] servername=" + servername);
 
-    if (methodname === "PlacementMatchService.BatchMatchPlacement") {
-      observeBatch(originalBody);
-      passThrough();
+    if (servername === "Placement" &&
+        methodname === "PlacementMatchService.BatchMatchPlacement") {
+      if (!originalBody) {
+        passThrough();
+        return;
+      }
+      var placementPayload = JSON.parse(originalBody);
+      $done(clearBatchPlacementResources(placementPayload)
+        ? JSON.stringify(placementPayload)
+        : originalBody);
+      return;
+    }
+
+    if (servername === "SilkwormShareSupport" &&
+        methodname === "SilkwormShareSupportService.CheckActivityEligibility") {
+      if (!originalBody) {
+        passThrough();
+        return;
+      }
+      var eligibilityPayload = JSON.parse(originalBody);
+      $done(clearRedPacketGuide(eligibilityPayload)
+        ? JSON.stringify(eligibilityPayload)
+        : originalBody);
       return;
     }
 
@@ -98,8 +92,6 @@
     }
 
     var data = payload.data;
-    console.log("[Xiaocan] matched MatchPlacement");
-    console.log("[Xiaocan] original ad_open=" + String(data.ad_open));
     if (data.ad_open !== 1) {
       passThrough();
       return;
@@ -113,7 +105,6 @@
       if (Object.prototype.hasOwnProperty.call(data, key)) data[key] = "";
     });
 
-    console.log("[Xiaocan] modified ad_open=0");
     $done(JSON.stringify(payload));
   } catch (error) {
     passThrough();

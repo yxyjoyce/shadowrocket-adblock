@@ -37,6 +37,33 @@
     }
   }
 
+  function clearBatchPlacementResources(payload) {
+    var resources = payload && payload.resources;
+    if (!Array.isArray(resources)) return false;
+    var changed = false;
+    resources.forEach(function (resource) {
+      if (!resource || typeof resource !== "object") return;
+      if (resource.resource_slug === "OPS_POPUP" ||
+          resource.resource_slug === "SHARER_HOME_POPUP") {
+        if (!Array.isArray(resource.value) || resource.value.length !== 0) {
+          resource.value = [];
+          changed = true;
+        }
+      }
+    });
+    return changed;
+  }
+
+  function clearRedPacketGuide(payload) {
+    if (!payload || typeof payload !== "object" ||
+        !Object.prototype.hasOwnProperty.call(payload, "show_red_packet_guide")) {
+      return false;
+    }
+    if (payload.show_red_packet_guide === false) return false;
+    payload.show_red_packet_guide = false;
+    return true;
+  }
+
   var legacyBody = replaceLegacyVipPopUp(originalBody);
 
   try {
@@ -44,6 +71,7 @@
       ? $request.headers
       : {};
     var methodname = getHeader(headers, "methodname");
+    var servername = getHeader(headers, "servername");
     var body = legacyBody;
     var payload;
     var changed = false;
@@ -56,6 +84,14 @@
     }
 
     if (payload && typeof payload === "object" && !Array.isArray(payload)
+      && servername === "Placement"
+      && methodname === "PlacementMatchService.BatchMatchPlacement") {
+      changed = clearBatchPlacementResources(payload);
+    } else if (payload && typeof payload === "object" && !Array.isArray(payload)
+      && servername === "SilkwormShareSupport"
+      && methodname === "SilkwormShareSupportService.CheckActivityEligibility") {
+      changed = clearRedPacketGuide(payload);
+    } else if (payload && typeof payload === "object" && !Array.isArray(payload)
       && payload.data && typeof payload.data === "object" && !Array.isArray(payload.data)
       && payload.data.ad_open === 1) {
       payload.data.ad_open = 0;
