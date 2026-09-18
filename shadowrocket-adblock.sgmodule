@@ -1199,7 +1199,6 @@ https://new-app-api.ylyk.com/v1/user/myinfo/adviser - reject-200
 ^https:\/\/huichuan\.sm\.cn\/nativead - reject-dict
 ^https:\/\/ocean\.shuqireader\.com\/api\/route\/iosReadPage\/adV2 - reject-dict
 ^https:\/\/ocean\.shuqireader\.com\/api\/route\/ios\/readPage$ - reject-dict
-^https:\/\/ocean\.shuqireader\.com\/api\/render\/load\/resource - reject
 
 # 合并来源: 2a1f8423e9af10118fc6ec74d558bcf1(1).sgmodule
 ^https:\/\/pan\.baidu\.com\/api\/getconfig\? - reject-dict
@@ -1346,6 +1345,9 @@ http-response-jq ^https?:\/\/api\.weibo\.cn\/\d\/ug\/checkin\/stream '.items |= 
 ^https?:\/\/ap\.(dongqiudi|dongdianqiu)\.com\/plat\/v4 data-type=file data="https://raw.githubusercontent.com/ddgksf2013/Scripts/master/dongqiudi.js"
 
 [Script]
+# > 书旗小说：仅关闭 getAdInfo 返回中的自有开屏开关
+书旗开屏 = type=http-response, pattern=^https?:\/\/ocean\.shuqireader\.com\/api\/ad\/adserver\/v1\/api\/getAdInfo(?:\?.*)?$, script-path=https://raw.githubusercontent.com/yxyjoyce/shadowrocket-adblock/main/scripts/shuqi-response-shadowrocket.js, requires-body=true, max-size=-1, timeout=30, engine=jsc
+
 # > 准了 APP：仅处理启动页和星座更新响应
 准了 = type=http-response, pattern=^https?:\/\/wechat\.goddessxzns\.com\/api\/(?:v20\/startup_page|v14\/astro\/update)(?:\?.*)?$, script-path=https://raw.githubusercontent.com/yxyjoyce/shadowrocket-adblock/main/scripts/zhunle-response-shadowrocket.js, requires-body=true, max-size=-1, timeout=30, engine=jsc
 
