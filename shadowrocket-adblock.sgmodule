@@ -223,7 +223,6 @@ DOMAIN-SUFFIX,api.touch-moblie.com,REJECT
 # > appso
 ^https?:\/\/sso.ifanr.com\/jiong\/IOS\/appso\/splash\/ - reject-200
 # > alibaba
-^https?:\/\/acs\.m\.taobao\.com\/gw\/mtop\.alibaba\.advertisementservice\.getadv\/ - reject-200
 ^https?:\/\/acs\.m\.taobao\.com\/gw\/mtop\.alibaba\.cbu\.app\.homepage\.startup - reject-200
 # > aastocks
 ^https?:\/\/.*aastocks\.com\/ad\/ - reject-200
@@ -756,7 +755,6 @@ https://top-widgets-api.xiaozujian.com/api/ad/config - reject-200
 # > tangdong
 ^https?:\/\/td\.cgmcare\.cn\/api\/ad - reject-200
 # > taobao
-^https?:\/\/guide-acs\.m\.taobao\.com\/gw\/mtop\.taobao\.wireless\.home\.splash\.awesome\.get - reject-200
 # > tianmao
 ^https?:\/\/guide-acs\.m\.taobao\.com\/gw\/mtop\.fc\.resource\.tacdata\.get - reject-200
 # > tuantuanjiayou
@@ -1465,9 +1463,8 @@ xiaocanMatchPlacement = type=http-response, pattern=^https?:\/\/gw\.xiaocantech\
 # > Zhihu
 zhihu_openads = type=http-response, pattern=^https?:\/\/api\.zhihu\.com\/commercial_api.*launch_v2, script-path=https://raw.githubusercontent.com/ddgksf2013/Scripts/refs/heads/master/zhihu_openads.js, requires-body=true, max-size=-1, timeout=60
 
-# 合并来源: 2a180322630c512a74e5c55bc06db80b.sgmodule
-移除淘宝开屏广告 = type=http-response, pattern=^https:\/\/guide-acs\.m\.taobao\.com\/gw\/mtop\.taobao\.(cloudvideo\.video\.query|wireless\.home\.splash\.awesome\.get), script-path=https://kelee.one/Resource/JavaScript/Taobao/Taobao_remove_ads.js, requires-body=true
-移除淘宝开屏广告 = type=http-response, pattern=^https:\/\/poplayer\.template\.alibaba\.com\/\w+\.json, script-path=https://kelee.one/Resource/JavaScript/Taobao/Taobao_remove_ads.js, requires-body=true
+# 淘宝：R-Store 结构化处理 cloudvideo、splash 与 poplayer，单一 response handler
+taobaoRStore = type=http-response, pattern=^https:\/\/(?:guide-acs\.m\.taobao\.com\/gw\/mtop\.taobao\.(?:cloudvideo\.video\.query|wireless\.home\.splash\.awesome\.get)|poplayer\.template\.alibaba\.com\/\w+\.json), script-path=https://raw.githubusercontent.com/yxyjoyce/shadowrocket-adblock/main/scripts/taobao-rstore-response-shadowrocket.js, requires-body=true, max-size=-1, timeout=60
 
 # 合并来源: 3206dd10577313683cbfa63c32970df0.sgmodule
 移除扫码取件页面商品推荐及弹窗 = type=http-response, pattern=^https:\/\/m\.pinduoduo\.net\/mdkd\/package\?from_app_scan, script-path=https://kelee.one/Resource/JavaScript/PinDuoDuo/PinDuoDuo_remove_ads.js, requires-body=true
