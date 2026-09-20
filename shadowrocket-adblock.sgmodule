@@ -1066,6 +1066,7 @@ https://new-app-api.ylyk.com/v1/user/myinfo/adviser - reject-200
 
 # > 小红书/广告组件去开屏（合并自附件）
 ^https?:\/\/lf-cdn-tos\.bytescm\.com\/obj\/static\/ad\/play-comp\/playable-component-sdk\/package\.ugen\.json\?.* - reject-200
+^https?:\/\/sf\d+-ttcdn-tos\.pstatp\.com\/obj\/union-fe\/playable\/.* - reject-200
 
 # > 小蚕/七猫：旧抓包确认的实际开屏素材与广告组件
 ^https?:\/\/vdn-ad\.vzuu\.com\/HD\/ad_bidding_ob\/.*(?:\?.*)?$ - reject-200
