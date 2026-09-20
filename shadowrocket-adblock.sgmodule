@@ -82,6 +82,27 @@ DOMAIN,ems.youku.com,REJECT
 DOMAIN,hudong.alicdn.com,REJECT
 DOMAIN,h-adashx.ut.taobao.com,REJECT
 DOMAIN,ut.taobao.com,REJECT
+# 淘宝 R-Store：广告投放、竞价、点击与统计专用主机
+# 仅同步高置信广告链；未同步 apoll/w/re/ai 等泛服务主机
+DOMAIN-SUFFIX,dsp.simba.taobao.com,REJECT
+DOMAIN-SUFFIX,fav.simba.taobao.com,REJECT
+DOMAIN-SUFFIX,m.simba.taobao.com,REJECT
+DOMAIN-SUFFIX,mclick.simba.taobao.com,REJECT
+DOMAIN-SUFFIX,redirect.simba.taobao.com,REJECT
+DOMAIN-SUFFIX,simba.m.taobao.com,REJECT
+DOMAIN-SUFFIX,srd.simba.taobao.com,REJECT
+DOMAIN-SUFFIX,textlink.simba.taobao.com,REJECT
+DOMAIN-SUFFIX,unitacs.m.taobao.com,REJECT
+DOMAIN-SUFFIX,adashx4yt.m.taobao.com,REJECT
+DOMAIN-SUFFIX,tns.simba.taobao.com,REJECT
+DOMAIN-SUFFIX,click.mz.simba.taobao.com,REJECT
+DOMAIN-SUFFIX,click.simba.taobao.com,REJECT
+DOMAIN-SUFFIX,click.tz.simba.taobao.com,REJECT
+DOMAIN-SUFFIX,stat.simba.taobao.com,REJECT
+DOMAIN-SUFFIX,m-adash.m.taobao.com,REJECT
+DOMAIN-SUFFIX,adashbc.m.taobao.com,REJECT
+DOMAIN-SUFFIX,tunion-api.m.taobao.com,REJECT
+DOMAIN-SUFFIX,acs4baichuan.m.taobao.com,REJECT
 
 # 合并来源: 96542e60b79646988dbeb33ebc4268fa.sgmodule
 DOMAIN,gwp.xiaojukeji.com,REJECT
