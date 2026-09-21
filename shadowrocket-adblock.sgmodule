@@ -36,17 +36,14 @@ DOMAIN,admin.hzjizhun.cn,REJECT
 DOMAIN,static.shunchangzhixing.com,REJECT
 
 # > 红果短剧/抖音广告素材
-# 仅拦截已确认的 ad-sign 子域，不拦截普通 byteimg CDN
-DOMAIN,p3-ad-sign.byteimg.com,REJECT
-DOMAIN,p6-ad-sign.byteimg.com,REJECT
-DOMAIN,p9-ad-sign.byteimg.com,REJECT
+# 仅拦截已确认的 ad-sign 命名空间，不拦截普通 byteimg CDN
+DOMAIN-SUFFIX,ad-sign.byteimg.com,REJECT
 DOMAIN,g.cn.miaozhen.com,REJECT
 
 # 红果广告视频
 DOMAIN-WILDCARD,*-reading-ad.qznovelvod.com,REJECT-DROP
 DOMAIN-WILDCARD,*-iosreadingvideo.qznovelvod.com,REJECT-DROP
 DOMAIN-WILDCARD,*-misc-lq.fqnovel.com,REJECT-DROP
-DOMAIN-WILDCARD,*-ad-sign.byteimg.com,REJECT-DROP
 
 # 字节系广告接口及跳转
 DOMAIN,ads3-normal-hl.zijieapi.com,REJECT-DROP
