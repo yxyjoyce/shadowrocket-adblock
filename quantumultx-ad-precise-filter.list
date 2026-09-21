@@ -32,6 +32,12 @@ host-suffix, dahhxxttxs.com, reject
 # 红果：日志确认的下一集广告域名
 host, adx-ad-prod.wkanx.com, reject
 
+# 抖音启动广告：仅拦截确认的 ad-sign 素材子域与曝光监测域
+host, p3-ad-sign.byteimg.com, reject
+host, p6-ad-sign.byteimg.com, reject
+host, p9-ad-sign.byteimg.com, reject
+host, g.cn.miaozhen.com, reject
+
 # 抖音：业务图片例外；必须位于任何字节/抖音图片泛拒绝规则之前
 host, p3-item.ecombdimg.com, direct
 host, p9-item.ecombdimg.com, direct

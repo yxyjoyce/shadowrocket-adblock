@@ -35,9 +35,12 @@ DOMAIN,inner.shunchangzhixing.com,REJECT
 DOMAIN,admin.hzjizhun.cn,REJECT
 DOMAIN,static.shunchangzhixing.com,REJECT
 
-# > 红果短剧广告
-# 保留必要的图片放行，避免素材加载异常
-DOMAIN,p3-ad-sign.byteimg.com,DIRECT
+# > 红果短剧/抖音广告素材
+# 仅拦截已确认的 ad-sign 子域，不拦截普通 byteimg CDN
+DOMAIN,p3-ad-sign.byteimg.com,REJECT
+DOMAIN,p6-ad-sign.byteimg.com,REJECT
+DOMAIN,p9-ad-sign.byteimg.com,REJECT
+DOMAIN,g.cn.miaozhen.com,REJECT
 
 # 红果广告视频
 DOMAIN-WILDCARD,*-reading-ad.qznovelvod.com,REJECT-DROP
