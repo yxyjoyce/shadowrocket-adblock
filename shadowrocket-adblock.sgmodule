@@ -1367,6 +1367,7 @@ http-response-jq ^https?:\/\/api\.weibo\.cn\/\d\/ug\/checkin\/stream '.items |= 
 [Script]
 # 链家首页：仅清空已存在的活动 Banner 字段，脚本对非目标或异常响应 fail-open
 lianjiaHome = type=http-response, pattern=^https?:\/\/apps\.api\.lianjia\.com\/config\/home\/content(?:\?.*)?$, script-path=https://raw.githubusercontent.com/yxyjoyce/shadowrocket-adblock/main/scripts/lianjia-home-response.js, requires-body=true, max-size=-1, timeout=30, engine=jsc
+lianjiaActivity = type=http-response, pattern=^https:\/\/apps\.api\.lianjia\.com\/config\/config\/getactivityconfig(?:\?.*)?$, script-path=https://raw.githubusercontent.com/yxyjoyce/shadowrocket-adblock/main/scripts/lianjia-home-response.js, requires-body=true, max-size=-1, timeout=30, engine=jsc
 
 # > 书旗小说：仅关闭 getAdInfo 返回中的自有开屏开关
 书旗开屏 = type=http-response, pattern=^https?:\/\/ocean\.shuqireader\.com\/api\/ad\/adserver\/v1\/api\/getAdInfo(?:\?.*)?$, script-path=https://raw.githubusercontent.com/yxyjoyce/shadowrocket-adblock/main/scripts/shuqi-response-shadowrocket.js, requires-body=true, max-size=-1, timeout=30, engine=jsc
