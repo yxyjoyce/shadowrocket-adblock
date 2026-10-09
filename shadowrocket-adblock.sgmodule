@@ -260,6 +260,8 @@ DOMAIN-SUFFIX,api.touch-moblie.com,REJECT
 # > baidufanyi
 ^https?:\/\/mime\.baidu\.com\/v\d\/IosStart\/getStartInfo - reject-200
 ^https?:\/\/mime\.baidu\.com\/v\d\/activity\/advertisement - reject-200
+^https?:\/\/mime\.baidu\.com\/v\d\/IosStart\/getStartInfo$ - reject
+^https?:\/\/mime\.baidu\.com\/v\d\/activity\/advertisement - reject
 # > baiduwenku
 ^https?:\/\/appwk\.baidu\.com\/xpage\/interface\/wknaad - reject-200
 # > baiduwangpan
