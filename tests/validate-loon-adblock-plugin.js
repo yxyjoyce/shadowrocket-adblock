@@ -170,7 +170,7 @@ assert.strictEqual(pluginMapConversions.length, sourceMaps.length, 'Map Local co
 
 var sourceScripts = active(sourceSection('Script'));
 var pluginScripts = active(sectionText(plugin, 'Script'));
-assert.strictEqual(sourceScripts.length, 137, 'source Script baseline');
+assert.strictEqual(sourceScripts.length, 136, 'source Script baseline');
 assert.strictEqual(pluginScripts.length, sourceScripts.length, 'Script count');
 assert.deepStrictEqual(pluginScripts, sourceScripts.map(convertScript), 'Script v2 conversion');
 ['keepStyle', '微信公众号去广告', '高德地图去广告'].forEach(function (name) {
@@ -183,7 +183,7 @@ pluginScripts.forEach(function (line) {
   assert.strictEqual(/,\s*(?:requires-body|max-size|timeout|engine|script-path|argument|binary-body-mode)=/.test(patternPart), false, 'script property leaked into pattern: ' + line);
 });
 assert.strictEqual(pluginScripts.filter(function (line) { return line.indexOf('youtubei\\.googleapis\\.com') >= 0 && line.indexOf('(player|get_watch)') >= 0; }).length, 1, 'YouTube player/get_watch script');
-assert.strictEqual(pluginScripts.filter(function (line) { return /lianjia-home-response\.js/.test(line); }).length, 1, 'Lianjia script');
+assert.strictEqual(pluginScripts.filter(function (line) { return /lianjia-home-response\.js/.test(line); }).length, 0, 'Lianjia script removed');
 assert.strictEqual(pluginScripts.filter(function (line) { return /xiaocan-matchplacement-shadowrocket\.js/.test(line); }).length, 1, 'Xiaocan script');
 
 function hostSet(lines) {
