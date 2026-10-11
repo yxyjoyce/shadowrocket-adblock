@@ -6,6 +6,8 @@
 # > 12306
 DOMAIN,ad.12306.cn,DIRECT
 DOMAIN-SUFFIX,shenshiads.com,REJECT
+# 支付宝哈啰小程序开屏广告
+DOMAIN,admaster-public.51downapp.cn,REJECT
 # > lexiaotong
 DOMAIN-SUFFIX,yfanads.com,REJECT
 DOMAIN-SUFFIX,iyes.youku.com,REJECT
