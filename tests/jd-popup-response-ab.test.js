@@ -21,12 +21,22 @@ assert(!urlPattern.test("https://other.m.jd.com/client.action?functionId=queryPa
 assert(!urlPattern.test("https://img30.360buyimg.com/client.action?functionId=queryPagePopWindow"));
 
 const imageRuleLines = lines.filter((line) => line.includes("request if ${url} ~= /") && line.includes("m15\\.360buyimg\\.com") && line.includes("reject_img(200)"));
-assert.equal(imageRuleLines.length, 4, "expected four exact JD image reject rules");
-const imagePatterns = imageRuleLines.map((line) => {
+assert.equal(imageRuleLines.length, 5, "expected four exact and one composite JD image reject rules");
+const exactImageRuleLines = imageRuleLines.filter((line) => !line.includes("request.header['referer']"));
+assert.equal(exactImageRuleLines.length, 4, "expected four exact JD image reject rules");
+const imagePatterns = exactImageRuleLines.map((line) => {
   const match = line.match(/^request if \$\{url\} ~= \/(.*)\/ then reject_img\(200\)$/);
   assert(match, "could not extract image URL regex from the plugin rule");
   return new RegExp(match[1]);
 });
+const compositeLine = imageRuleLines.find((line) => line.includes("request.header['referer']"));
+assert(compositeLine, "missing composite home-image rule");
+const compositeMatch = compositeLine.match(/^request if \$\{url\} ~= \/(.*)\/ && \$\{request\.header\['referer'\]\} == "([^"]+)" then reject_img\(200\)$/);
+assert(compositeMatch, "could not extract composite URL/referer conditions from the plugin rule");
+const compositeUrlPattern = new RegExp(compositeMatch[1]);
+const compositeReferer = compositeMatch[2];
+assert.equal(compositeReferer, "Image_JDAppHome");
+const compositeMatches = (url, referer) => compositeUrlPattern.test(url) && referer === compositeReferer;
 const expectedImagePaths = new Set([
   "/mobilecms/jfs/t1/535295/1/15284/16310/6ad76d7aF40ccb489/02581b013ea1b837.png.webp",
   "/mobilecms/jfs/t1/542232/20/10106/20235/6ad81abdF82ec8b07/02761b013ebec24e.png.webp",
@@ -41,6 +51,15 @@ assert(!imagePatterns.some((pattern) => pattern.test("https://m15.360buyimg.com/
 assert(!imagePatterns.some((pattern) => pattern.test("https://m15.360buyimg.com/mobilecms/jfs/t1/535295/1/15284/16310/6ad76d7aF40ccb489/02581b013ea1b837.png.webp/extra")));
 assert(!imagePatterns.some((pattern) => pattern.test("http://m15.360buyimg.com/mobilecms/jfs/t1/535295/1/15284/16310/6ad76d7aF40ccb489/02581b013ea1b837.png.webp")));
 assert(!imagePatterns.some((pattern) => pattern.test("https://img30.360buyimg.com/mobilecms/jfs/t1/535295/1/15284/16310/6ad76d7aF40ccb489/02581b013ea1b837.png.webp")));
+for (const prefix of ["02761b013", "00ae1b013"]) {
+  const url = `https://m15.360buyimg.com/mobilecms/jfs/t1/example/${prefix}abc.png.webp?cache=1`;
+  assert(compositeUrlPattern.test(url));
+  assert(compositeMatches(url, "Image_JDAppHome"));
+  assert(!compositeMatches(url, "OtherReferer"));
+  assert(!compositeUrlPattern.test(url.replace("m15.360buyimg.com", "img30.360buyimg.com")));
+  assert(!compositeUrlPattern.test(url.replace(".png.webp", ".png")));
+}
+assert(!compositeUrlPattern.test("https://m15.360buyimg.com/mobilecms/jfs/t1/example/otherprefixabc.png.webp"));
 
 const mitmLine = lines.find((line) => line.startsWith("hostname = "));
 assert.equal(mitmLine, "hostname = api.m.jd.com, m15.360buyimg.com", "diagnostic MITM scope changed unexpectedly");
@@ -53,6 +72,11 @@ if (harPaths.length) {
   const imageStatuses = new Map([...expectedImagePaths].map((pathname) => [pathname, new Set()]));
   for (const harPath of harPaths) {
     const har = JSON.parse(fs.readFileSync(harPath, "utf8"));
+    const harName = path.basename(harPath);
+    let compositeSuccessCount = 0;
+    let nonHomeTargetCount = 0;
+    let normalHomeCount = 0;
+    let exactSuccessCount = 0;
     for (const entry of har.log.entries) {
       let url;
       try {
@@ -73,14 +97,35 @@ if (harPaths.length) {
         }
       }
       if (url.hostname === "m15.360buyimg.com") {
+        const referer = (entry.request.headers || []).find((header) => String(header.name).toLowerCase() === "referer")?.value;
+        const prefixMatch = compositeUrlPattern.test(url.href);
+        const homeCompositeMatch = compositeMatches(url.href, referer);
+        if (prefixMatch && referer === compositeReferer) {
+          assert(homeCompositeMatch, "home target did not satisfy the extracted composite rule");
+          if (entry.response.status === 200) compositeSuccessCount += 1;
+        } else if (prefixMatch) {
+          nonHomeTargetCount += 1;
+          assert(!homeCompositeMatch, "non-home target matched the composite rule");
+        } else if (referer === compositeReferer) {
+          normalHomeCount += 1;
+          assert(!homeCompositeMatch, "normal same-referer icon matched the composite rule");
+        }
         if (expectedImagePaths.has(url.pathname)) {
           assert(imagePatterns.some((pattern) => pattern.test(url.href)), "HAR image URL did not match an extracted plugin regex");
           seenImagePaths.add(url.pathname);
           imageStatuses.get(url.pathname).add(entry.response.status);
+          if (entry.response.status === 200) exactSuccessCount += 1;
         } else {
           assert(!imagePatterns.some((pattern) => pattern.test(url.href)), "similar normal m15 image matched unexpectedly");
         }
       }
+    }
+    if (harName.includes("59_")) assert.equal(exactSuccessCount, 1, "HAR59 exact-material fallback count changed");
+    if (harName.includes("60_")) assert.equal(compositeSuccessCount, 3, "HAR60 home composite success count changed");
+    if (harName.includes("61_")) {
+      assert.equal(compositeSuccessCount, 2, "HAR61 home composite success count changed");
+      assert.equal(nonHomeTargetCount, 4, "HAR61 non-home target count changed");
+      assert.equal(normalHomeCount, 8, "HAR61 normal same-referer icon count changed");
     }
   }
   if (apiTargetCount > 0) {
@@ -92,7 +137,7 @@ if (harPaths.length) {
     for (const [pathname, statuses] of imageStatuses) assert(statuses.has(200), `HAR material has no successful response: ${pathname}`);
   }
   assert(apiTargetCount > 0 || seenImagePaths.size > 0, "HAR set contained neither interface nor image evidence");
-  console.log(`JD queryPagePopWindow and image reject tests passed: ${apiTargetCount} interface targets, ${seenImagePaths.size} exact image paths; ${apiOtherCount} other functionIds excluded`);
+  console.log(`JD queryPagePopWindow and home-image composite tests passed: ${apiTargetCount} interface targets, ${seenImagePaths.size} exact fallback paths; ${apiOtherCount} other functionIds excluded`);
 } else {
   console.log("JD queryPagePopWindow request reject fixture and boundary tests passed");
 }
