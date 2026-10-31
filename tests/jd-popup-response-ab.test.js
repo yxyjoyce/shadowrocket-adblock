@@ -20,24 +20,37 @@ assert(!urlPattern.test("https://api.m.jd.com/other.action?functionId=queryPageP
 assert(!urlPattern.test("https://other.m.jd.com/client.action?functionId=queryPagePopWindow"));
 assert(!urlPattern.test("https://img30.360buyimg.com/client.action?functionId=queryPagePopWindow"));
 
-const domainRuleLines = lines.filter((line) => line === "DOMAIN,m15.360buyimg.com,REJECT");
-assert.equal(domainRuleLines.length, 1, "expected one exact m15 domain reject rule");
-assert(!lines.some((line) => line.includes("reject_img(200)")), "image rewrite rules should be removed after whole-domain reject");
-const blockedDomain = domainRuleLines[0].split(",")[1];
-const domainMatches = (hostname) => hostname.toLowerCase() === blockedDomain.toLowerCase();
-assert(domainMatches("m15.360buyimg.com"));
-assert(domainMatches("M15.360BUYIMG.COM"));
-assert(!domainMatches("img.m15.360buyimg.com"));
-assert(!domainMatches("m15.360buyimg.com.cdn.example"));
-assert(!domainMatches("360buyimg.com"));
+const imageRuleLines = lines.filter((line) => line.includes("request if ${url} ~= /") && line.includes("m15\\.360buyimg\\.com") && line.includes("reject_img(200)"));
+assert.equal(imageRuleLines.length, 4, "expected four exact JD image reject rules");
+const imagePatterns = imageRuleLines.map((line) => {
+  const match = line.match(/^request if \$\{url\} ~= \/(.*)\/ then reject_img\(200\)$/);
+  assert(match, "could not extract image URL regex from the plugin rule");
+  return new RegExp(match[1]);
+});
+const expectedImagePaths = new Set([
+  "/mobilecms/jfs/t1/535295/1/15284/16310/6ad76d7aF40ccb489/02581b013ea1b837.png.webp",
+  "/mobilecms/jfs/t1/542232/20/10106/20235/6ad81abdF82ec8b07/02761b013ebec24e.png.webp",
+  "/mobilecms/jfs/t1/562263/29/1650/19727/6ae1d763Fa468ff12/02761b013e4d11bd.png.webp",
+  "/mobilecms/jfs/t1/548794/19/11257/17129/6ae1d776F099b7917/02761b013ef71270.png.webp",
+]);
+for (const pathname of expectedImagePaths) {
+  assert(imagePatterns.some((pattern) => pattern.test(`https://m15.360buyimg.com${pathname}`)));
+  assert(imagePatterns.some((pattern) => pattern.test(`https://m15.360buyimg.com${pathname}?cache=1`)));
+}
+assert(!imagePatterns.some((pattern) => pattern.test("https://m15.360buyimg.com/mobilecms/jfs/t1/535295/1/15284/16310/6ad76d7aF40ccb489/02581b013ea1b837.png")));
+assert(!imagePatterns.some((pattern) => pattern.test("https://m15.360buyimg.com/mobilecms/jfs/t1/535295/1/15284/16310/6ad76d7aF40ccb489/02581b013ea1b837.png.webp/extra")));
+assert(!imagePatterns.some((pattern) => pattern.test("http://m15.360buyimg.com/mobilecms/jfs/t1/535295/1/15284/16310/6ad76d7aF40ccb489/02581b013ea1b837.png.webp")));
+assert(!imagePatterns.some((pattern) => pattern.test("https://img30.360buyimg.com/mobilecms/jfs/t1/535295/1/15284/16310/6ad76d7aF40ccb489/02581b013ea1b837.png.webp")));
 
 const mitmLine = lines.find((line) => line.startsWith("hostname = "));
-assert.equal(mitmLine, "hostname = api.m.jd.com", "m15 should be removed from MITM after whole-domain reject");
+assert.equal(mitmLine, "hostname = api.m.jd.com, m15.360buyimg.com", "diagnostic MITM scope changed unexpectedly");
 
 const harPaths = process.argv.slice(2);
 if (harPaths.length) {
   let apiTargetCount = 0;
   let apiOtherCount = 0;
+  const seenImagePaths = new Set();
+  const imageStatuses = new Map([...expectedImagePaths].map((pathname) => [pathname, new Set()]));
   for (const harPath of harPaths) {
     const har = JSON.parse(fs.readFileSync(harPath, "utf8"));
     for (const entry of har.log.entries) {
@@ -59,11 +72,27 @@ if (harPaths.length) {
           assert(!urlPattern.test(url.href), "non-target functionId matched unexpectedly");
         }
       }
+      if (url.hostname === "m15.360buyimg.com") {
+        if (expectedImagePaths.has(url.pathname)) {
+          assert(imagePatterns.some((pattern) => pattern.test(url.href)), "HAR image URL did not match an extracted plugin regex");
+          seenImagePaths.add(url.pathname);
+          imageStatuses.get(url.pathname).add(entry.response.status);
+        } else {
+          assert(!imagePatterns.some((pattern) => pattern.test(url.href)), "similar normal m15 image matched unexpectedly");
+        }
+      }
     }
   }
-  assert.equal(apiTargetCount, 2, "HAR set should contain two queryPagePopWindow requests");
-  assert(apiOtherCount > 0, "HAR set should provide non-target client.action functionIds");
-  console.log(`JD queryPagePopWindow request reject test passed: ${apiTargetCount} HAR targets matched; ${apiOtherCount} other functionIds excluded`);
+  if (apiTargetCount > 0) {
+    assert.equal(apiTargetCount, 2, "HAR set should contain two queryPagePopWindow requests");
+    assert(apiOtherCount > 0, "HAR set should provide non-target client.action functionIds");
+  }
+  if (seenImagePaths.size > 0) {
+    assert.deepStrictEqual(seenImagePaths, expectedImagePaths, "HAR image paths differ from the four exact plugin targets");
+    for (const [pathname, statuses] of imageStatuses) assert(statuses.has(200), `HAR material has no successful response: ${pathname}`);
+  }
+  assert(apiTargetCount > 0 || seenImagePaths.size > 0, "HAR set contained neither interface nor image evidence");
+  console.log(`JD queryPagePopWindow and image reject tests passed: ${apiTargetCount} interface targets, ${seenImagePaths.size} exact image paths; ${apiOtherCount} other functionIds excluded`);
 } else {
   console.log("JD queryPagePopWindow request reject fixture and boundary tests passed");
 }
