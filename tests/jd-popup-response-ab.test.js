@@ -51,8 +51,8 @@ assert(!imagePatterns.some((pattern) => pattern.test("https://m15.360buyimg.com/
 assert(!imagePatterns.some((pattern) => pattern.test("https://m15.360buyimg.com/mobilecms/jfs/t1/535295/1/15284/16310/6ad76d7aF40ccb489/02581b013ea1b837.png.webp/extra")));
 assert(!imagePatterns.some((pattern) => pattern.test("http://m15.360buyimg.com/mobilecms/jfs/t1/535295/1/15284/16310/6ad76d7aF40ccb489/02581b013ea1b837.png.webp")));
 assert(!imagePatterns.some((pattern) => pattern.test("https://img30.360buyimg.com/mobilecms/jfs/t1/535295/1/15284/16310/6ad76d7aF40ccb489/02581b013ea1b837.png.webp")));
-for (const prefix of ["02761b013", "00ae1b013"]) {
-  const url = `https://m15.360buyimg.com/mobilecms/jfs/t1/example/${prefix}abc.png.webp?cache=1`;
+for (const basename of ["02761b013e4d11bd", "00ae1b013e25e56f", "abcd1b0131234567"]) {
+  const url = `https://m15.360buyimg.com/mobilecms/jfs/t1/example/${basename}.png.webp?cache=1`;
   assert(compositeUrlPattern.test(url));
   assert(compositeMatches(url, "Image_JDAppHome"));
   assert(!compositeMatches(url, "OtherReferer"));
@@ -60,6 +60,9 @@ for (const prefix of ["02761b013", "00ae1b013"]) {
   assert(!compositeUrlPattern.test(url.replace(".png.webp", ".png")));
 }
 assert(!compositeUrlPattern.test("https://m15.360buyimg.com/mobilecms/jfs/t1/example/otherprefixabc.png.webp"));
+assert(!compositeUrlPattern.test("https://m15.360buyimg.com/mobilecms/jfs/t1/example/abcd1b0141234567.png.webp"));
+assert(!compositeUrlPattern.test("https://m15.360buyimg.com/mobilecms/jfs/t1/example/abcd1b013123456.png.webp"));
+assert(!compositeUrlPattern.test("https://m15.360buyimg.com/mobilecms/jfs/t1/example/abcd1b01312345678.png.webp"));
 
 const mitmLine = lines.find((line) => line.startsWith("hostname = "));
 assert.equal(mitmLine, "hostname = api.m.jd.com, m15.360buyimg.com", "diagnostic MITM scope changed unexpectedly");
