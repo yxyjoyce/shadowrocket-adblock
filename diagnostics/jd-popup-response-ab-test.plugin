@@ -1,14 +1,13 @@
 #!name = JD queryPagePopWindow 接口 A/B 临时测试（可撤销）
-#!desc = 临时测试：精确拦截 queryPagePopWindow 接口并拒绝两个已核对的 m15 图片素材；尚未证实对应截图浮窗，原本运营弹窗可能一并移除，图片规则可能造成首页加载减速；请关闭旧图片测试插件；关闭本插件即可撤销
+#!desc = 临时测试：精确拦截 queryPagePopWindow 接口，并直接拒绝整个 m15.360buyimg.com 域名；商品图片与首页内容可能缺失或加载减速，尚未证实对应截图浮窗；关闭旧图片测试插件；关闭本插件即可撤销
 #!type = normal
 #!loon_version = 3.5.1(983)
 
+[Rule]
+DOMAIN,m15.360buyimg.com,REJECT
+
 [Rewrite]
 request if ${url} ~= /^https:\/\/api\.m\.jd\.com\/client\.action\?(?:[^&]*&)*functionId=queryPagePopWindow(?:&[^&]*)*$/ then reject_dict(200)
-request if ${url} ~= /^https:\/\/m15\.360buyimg\.com\/mobilecms\/jfs\/t1\/535295\/1\/15284\/16310\/6ad76d7aF40ccb489\/02581b013ea1b837\.png\.webp(?:\?.*)?$/ then reject_img(200)
-request if ${url} ~= /^https:\/\/m15\.360buyimg\.com\/mobilecms\/jfs\/t1\/542232\/20\/10106\/20235\/6ad81abdF82ec8b07\/02761b013ebec24e\.png\.webp(?:\?.*)?$/ then reject_img(200)
-request if ${url} ~= /^https:\/\/m15\.360buyimg\.com\/mobilecms\/jfs\/t1\/562263\/29\/1650\/19727\/6ae1d763Fa468ff12\/02761b013e4d11bd\.png\.webp(?:\?.*)?$/ then reject_img(200)
-request if ${url} ~= /^https:\/\/m15\.360buyimg\.com\/mobilecms\/jfs\/t1\/548794\/19\/11257\/17129\/6ae1d776F099b7917\/02761b013ef71270\.png\.webp(?:\?.*)?$/ then reject_img(200)
 
 [Mitm]
-hostname = api.m.jd.com, m15.360buyimg.com
+hostname = api.m.jd.com
