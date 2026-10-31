@@ -30,7 +30,10 @@ const mitmHosts = mitmLine.slice("hostname = ".length).split(",").map((host) => 
 assert.equal(mitmHosts.filter((host) => host === "www.baidu.com").length, 1, "www.baidu.com MITM must remain exactly once");
 assert.equal(mitmHosts.filter((host) => host === "m.baidu.com").length, 1, "m.baidu.com MITM must remain exactly once");
 
-const style = '<style id="loon-baidu-home-minimal">#wise-index-feed{display:none!important}#userinfo-wrap .has-background-userinfo-bubble{display:none!important}</style>';
+const style = '<style id="loon-baidu-home-minimal">#wise-index-feed{display:none!important}#userinfo-wrap .has-background-userinfo-bubble{display:none!important}#header{min-height:100vh}#header #logo{margin-top:max(0px,min(40vh,calc((100vh - 148px)/2 - 61px)))}@supports (height:100svh){#header{min-height:100svh}#header #logo{margin-top:max(0px,min(40svh,calc((100svh - 148px)/2 - 61px)))}}</style>';
+assert(script.includes("#header #logo{margin-top:max(0px,min("), "dynamic vertical centering CSS missing");
+assert(script.includes("100svh") && script.includes("calc((100svh - 148px)/2 - 61px)"), "small viewport CSS missing");
+assert(!script.includes("position:fixed") && !script.includes("position:absolute"), "centering must remain in normal document flow");
 const fixture = '<html><head><meta charset="utf-8"></head><body><header id="header"><div id="userinfo-wrap"><span class="menu-area"></span><span class="has-background-userinfo-bubble">小说促销</span><span class="square-enterance"></span></div><div id="wiseindex-bdlogo"></div><form id="index-form"><input></form><section id="wise-index-feed"><script>window.keepFunction=true</script></section></header></body></html>';
 
 function run(url, body, status = 200) {

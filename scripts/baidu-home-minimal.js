@@ -53,7 +53,7 @@
     finish({}, "skip_no_head");
     return;
   }
-  var style = '<style id="loon-baidu-home-minimal">#wise-index-feed{display:none!important}#userinfo-wrap .has-background-userinfo-bubble{display:none!important}</style>';
+  var style = '<style id="loon-baidu-home-minimal">#wise-index-feed{display:none!important}#userinfo-wrap .has-background-userinfo-bubble{display:none!important}#header{min-height:100vh}#header #logo{margin-top:max(0px,min(40vh,calc((100vh - 148px)/2 - 61px)))}@supports (height:100svh){#header{min-height:100svh}#header #logo{margin-top:max(0px,min(40svh,calc((100svh - 148px)/2 - 61px)))}}</style>';
   var insertAt = head.index + head[0].length;
   finish({ body: body.slice(0, insertAt) + style + body.slice(insertAt) }, /id\s*=\s*["']wise-index-feed["']/i.test(body) ? "injected_feed_present" : "injected_feed_missing");
 })();
