@@ -1,0 +1,10 @@
+#!name = JD queryPagePopWindow 接口 A/B 临时测试（可撤销）
+#!desc = 仅对 HTTPS api.m.jd.com/client.action 中精确的 queryPagePopWindow 请求返回空 JSON；尚未证实对应截图浮窗，原本运营弹窗可能一并移除；请关闭旧图片测试插件；关闭本插件即可撤销
+#!type = normal
+#!loon_version = 3.5.1(983)
+
+[Rewrite]
+request if ${url} ~= /^https:\/\/api\.m\.jd\.com\/client\.action\?(?:[^&]*&)*functionId=queryPagePopWindow(?:&[^&]*)*$/ then reject_dict(200)
+
+[Mitm]
+hostname = api.m.jd.com
