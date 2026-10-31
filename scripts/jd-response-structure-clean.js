@@ -98,6 +98,13 @@
     }
     return changed;
   }
+  function cleanPromotionTabs(value) {
+    if (!isObject(value) || !isObject(value.promotionTabs) || value.promotionTabs.type !== "promotionTabs") return false;
+    var content = value.promotionTabs.content;
+    if (!isObject(content) || content.type !== "promotionTabs" || !Array.isArray(content.data) || content.data.length === 0) return false;
+    content.data = [];
+    return true;
+  }
 
   var parsed;
   var encoded = false;
@@ -115,6 +122,7 @@
   for (var i = 0; i < targets.length; i += 1) {
     if (cleanHome(targets[i])) changed = true;
     if (cleanMine(targets[i])) changed = true;
+    if (cleanPromotionTabs(targets[i])) changed = true;
   }
   if (!changed) { finish({}); return; }
   var output = JSON.stringify(parsed);

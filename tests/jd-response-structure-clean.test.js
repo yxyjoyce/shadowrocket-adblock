@@ -144,6 +144,45 @@ const combinedB64 = Buffer.from(JSON.stringify(combined), "utf8").toString("base
 const combinedB64Out = parseOutput(run(jdUrl, combinedB64), true);
 assert.deepEqual(combinedB64Out.floorList, [{ type: "normal" }]);
 assert.deepEqual(combinedB64Out.floors[0].data, { keep: true });
+const promotion = {
+  code: 0,
+  promotionTabs: {
+    type: "promotionTabs",
+    content: {
+      type: "promotionTabs",
+      data: [{ isCycFrame: "1", tabName: "推广" }],
+      keepContentField: "keep",
+    },
+    keepPromotionField: true,
+  },
+  data: {
+    promotionTabs: {
+      type: "promotionTabs",
+      content: { type: "promotionTabs", data: [{ tabName: "另一推广" }] },
+    },
+    floorList: [{ type: "normal" }],
+  },
+  keepRootField: "keep",
+};
+const promotionOut = parseOutput(run(jdUrl, JSON.stringify(promotion)), false);
+assert.deepEqual(promotionOut.promotionTabs.content.data, []);
+assert.equal(promotionOut.promotionTabs.content.keepContentField, "keep");
+assert.equal(promotionOut.promotionTabs.keepPromotionField, true);
+assert.deepEqual(promotionOut.data.promotionTabs.content.data, []);
+assert.deepEqual(promotionOut.data.floorList, [{ type: "normal" }]);
+assert.equal(promotionOut.keepRootField, "keep");
+const promotionB64 = Buffer.from(JSON.stringify(promotion), "utf8").toString("base64");
+const promotionB64Out = parseOutput(run(jdUrl, promotionB64), true);
+assert.deepEqual(promotionB64Out.promotionTabs.content.data, []);
+assert.deepEqual(promotionB64Out.data.promotionTabs.content.data, []);
+for (const [label, body] of [
+  ["promotion-missing", JSON.stringify({ promotionTabs: { type: "other", content: { type: "promotionTabs", data: [{}] } } })],
+  ["promotion-content-type", JSON.stringify({ promotionTabs: { type: "promotionTabs", content: { type: "other", data: [{}] } } })],
+  ["promotion-empty", JSON.stringify({ promotionTabs: { type: "promotionTabs", content: { type: "promotionTabs", data: [] } } })],
+  ["promotion-non-array", JSON.stringify({ promotionTabs: { type: "promotionTabs", content: { type: "promotionTabs", data: {} } } })],
+]) {
+  assert.equal(Object.keys(run(jdUrl, body)).length, 0, `${label} was changed unexpectedly`);
+}
 assert.equal(Object.keys(run(jdUrl, JSON.stringify({ stayWindowModule: { floor: { keep: true } } }))).length, 0, "unrecognized stayWindowModule was changed");
 
 const b64Unchanged = Buffer.from(JSON.stringify({ code: 0, data: { keep: true } }), "utf8").toString("base64");
@@ -165,6 +204,8 @@ for (const [label, url, body, status] of [
 function replayHar(harPath) {
   const har = JSON.parse(fs.readFileSync(harPath, "utf8"));
   let count = 0;
+  let promotionTargetCount = 0;
+  let promotionRewriteCount = 0;
   for (const entry of har.log.entries) {
     let url;
     try { url = new URL(entry.request.url); } catch { continue; }
@@ -179,19 +220,41 @@ function replayHar(harPath) {
     if (typeof result.body === "string") {
       assert(result.body.length > 0, "HAR replay produced an empty rewritten body");
     }
+    const before = (() => { try { return JSON.parse(body); } catch { return null; } })();
+    const target = before && before.promotionTabs && before.promotionTabs.type === "promotionTabs" && before.promotionTabs.content && before.promotionTabs.content.type === "promotionTabs" && Array.isArray(before.promotionTabs.content.data) && before.promotionTabs.content.data.length > 0;
+    if (target) {
+      promotionTargetCount += 1;
+      const scriptMarker = entry._loon && entry._loon.script;
+      const scriptApplied = Array.isArray(scriptMarker)
+        ? scriptMarker.includes("jd_response_structure_clean")
+        : scriptMarker === "jd_response_structure_clean";
+      assert(scriptApplied, "HAR promotionTabs target was not marked by the expected response script");
+      assert(result && typeof result.body === "string", "promotionTabs target was not rewritten");
+      const after = JSON.parse(result.body);
+      assert.deepEqual(after.promotionTabs.content.data, []);
+      const expected = JSON.parse(JSON.stringify(before));
+      expected.promotionTabs.content.data = [];
+      assert.deepEqual(after, expected, "HAR promotionTabs replay changed fields outside content.data");
+      promotionRewriteCount += 1;
+    }
     count += 1;
   }
-  return count;
+  return { count, promotionTargetCount, promotionRewriteCount };
 }
 
 const harPaths = process.argv.slice(2);
 if (harPaths.length) {
-  const harCounts = harPaths.map(replayHar);
-  const named = harPaths.map((file, index) => [path.basename(file), harCounts[index]]);
+  const harResults = harPaths.map(replayHar);
+  const named = harPaths.map((file, index) => [path.basename(file), harResults[index]]);
   const har56 = named.find(([name]) => name.includes("56_"));
-  if (har56) assert(har56[1] > 0, "HAR56 had no replayable JD client.action response");
-  assert(harCounts.every((count) => count >= 0), "HAR replay failed");
-  console.log(`JD original structure response script passed: ${harCounts.reduce((sum, count) => sum + count, 0)} replayable API responses`);
+  if (har56) assert(har56[1].count > 0, "HAR56 had no replayable JD client.action response");
+  const har64 = named.find(([name]) => name.includes("64_"));
+  if (har64) {
+    assert.equal(har64[1].promotionTargetCount, 1, "HAR64 promotionTabs target count changed");
+    assert.equal(har64[1].promotionRewriteCount, 1, "HAR64 promotionTabs rewrite count changed");
+  }
+  assert(harResults.every((result) => result.count >= 0), "HAR replay failed");
+  console.log(`JD original structure response script passed: ${harResults.reduce((sum, result) => sum + result.count, 0)} replayable API responses`);
 } else {
   console.log("JD original structure response script fixture, ordering, UTF-8, Base64 and fail-open tests passed");
 }
