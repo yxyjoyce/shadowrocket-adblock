@@ -1,0 +1,10 @@
+#!name = 百度翻译 sofire A/B 临时测试（可撤销）
+#!desc = 临时 A/B 对照：仅断开 sofire 指定 s 路径；可能影响其他百度 App 或推送；关闭本插件即可撤销
+#!type = normal
+#!loon_version = 3.5.1(983)
+
+[Rewrite]
+^https:\/\/sofire\.baidu\.com\/ios\/5\/s\/100\/10050\/ reject
+
+[Mitm]
+hostname = sofire.baidu.com
