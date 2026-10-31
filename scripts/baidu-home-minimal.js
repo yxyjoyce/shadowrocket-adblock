@@ -5,38 +5,55 @@
   var response = typeof $response === "object" && $response ? $response : {};
   var url = String(request.url || "");
   var body = response.body;
-  var urlPattern = /^https:\/\/www\.baidu\.com\/$/;
-  var anchors = [
-    'id="header"',
-    'id="userinfo-wrap"',
-    "menu-area",
-    "square-enterance",
-    'id="wiseindex-bdlogo"',
-    'id="index-form"',
-    'id="wise-index-feed"',
+  var coreAnchors = [
+    /id\s*=\s*["']wiseindex-bdlogo["']/i,
+    /id\s*=\s*["']index-form["']/i,
   ];
+  function logEvent(event) {
+    if (typeof console !== "undefined" && console && typeof console.log === "function") console.log("baidu_home_minimal:" + event);
+  }
+  function finish(value, event) {
+    logEvent(event);
+    done(value);
+  }
+  function allowedUrl(value) {
+    var match = value.match(/^https:\/\/(?:www|m)\.baidu\.com\/(?:\?([^#]*))?$/);
+    if (!match) return false;
+    var query = match[1] || "";
+    if (!query) return true;
+    var parts = query.split("&");
+    for (var i = 0; i < parts.length; i += 1) {
+      var key = parts[i].split("=")[0];
+      if (key === "wd" || key === "word" || key === "query" || key === "q") return false;
+    }
+    return true;
+  }
 
-  if (response.status !== 200 || !urlPattern.test(url) || typeof body !== "string" || body.length === 0) {
-    done({});
+  if (response.status !== 200 || !allowedUrl(url)) {
+    finish({}, "skip_status_or_url");
     return;
   }
-  for (var i = 0; i < anchors.length; i += 1) {
-    if (body.indexOf(anchors[i]) === -1) {
-      done({});
+  if (typeof body !== "string" || body.length === 0) {
+    finish({}, "skip_empty");
+    return;
+  }
+  for (var i = 0; i < coreAnchors.length; i += 1) {
+    if (!coreAnchors[i].test(body)) {
+      finish({}, "skip_core_anchors");
       return;
     }
   }
-  if (body.indexOf('id="loon-baidu-home-minimal"') !== -1) {
-    done({});
+  if (/id\s*=\s*["']loon-baidu-home-minimal["']/i.test(body)) {
+    finish({}, "skip_already_injected");
     return;
   }
 
   var head = body.match(/<head\b[^>]*>/i);
   if (!head) {
-    done({});
+    finish({}, "skip_no_head");
     return;
   }
   var style = '<style id="loon-baidu-home-minimal">#wise-index-feed{display:none!important}#userinfo-wrap .has-background-userinfo-bubble{display:none!important}</style>';
   var insertAt = head.index + head[0].length;
-  done({ body: body.slice(0, insertAt) + style + body.slice(insertAt) });
+  finish({ body: body.slice(0, insertAt) + style + body.slice(insertAt) }, /id\s*=\s*["']wise-index-feed["']/i.test(body) ? "injected_feed_present" : "injected_feed_missing");
 })();
