@@ -7,6 +7,8 @@
 request if ${url} ~= /^https:\/\/api\.m\.jd\.com\/client\.action\?(?:[^&]*&)*functionId=queryPagePopWindow(?:&[^&]*)*$/ then reject_dict(200)
 request if ${url} ~= /^https:\/\/m15\.360buyimg\.com\/mobilecms\/jfs\/t1\/535295\/1\/15284\/16310\/6ad76d7aF40ccb489\/02581b013ea1b837\.png\.webp(?:\?.*)?$/ then reject_img(200)
 request if ${url} ~= /^https:\/\/m15\.360buyimg\.com\/mobilecms\/jfs\/t1\/542232\/20\/10106\/20235\/6ad81abdF82ec8b07\/02761b013ebec24e\.png\.webp(?:\?.*)?$/ then reject_img(200)
+request if ${url} ~= /^https:\/\/m15\.360buyimg\.com\/mobilecms\/jfs\/t1\/562263\/29\/1650\/19727\/6ae1d763Fa468ff12\/02761b013e4d11bd\.png\.webp(?:\?.*)?$/ then reject_img(200)
+request if ${url} ~= /^https:\/\/m15\.360buyimg\.com\/mobilecms\/jfs\/t1\/548794\/19\/11257\/17129\/6ae1d776F099b7917\/02761b013ef71270\.png\.webp(?:\?.*)?$/ then reject_img(200)
 
 [Mitm]
 hostname = api.m.jd.com, m15.360buyimg.com
