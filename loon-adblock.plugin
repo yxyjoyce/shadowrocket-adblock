@@ -303,7 +303,7 @@ request if ${url} ~= /^https:\/\/m15\.360buyimg\.com\/mobilecms\/jfs\/t1\/542232
 request if ${url} ~= /^https:\/\/m15\.360buyimg\.com\/mobilecms\/jfs\/t1\/562263\/29\/1650\/19727\/6ae1d763Fa468ff12\/02761b013e4d11bd\.png\.webp(?:\?.*)?$/ then reject_img(200)
 request if ${url} ~= /^https:\/\/m15\.360buyimg\.com\/mobilecms\/jfs\/t1\/548794\/19\/11257\/17129\/6ae1d776F099b7917\/02761b013ef71270\.png\.webp(?:\?.*)?$/ then reject_img(200)
 request if ${url} ~= /^https:\/\/m15\.360buyimg\.com\/mobilecms\/jfs\/t1\/[^?]*\/[0-9a-f]{4}1b013[0-9a-f]{7}\.png\.webp(?:\?.*)?$/ && ${request.header['referer']} == "Image_JDAppHome" then reject_img(200)
-^https?:\/\/api\.m\.jd\.com\/client\.action\?functionId=(start|queryMaterialAdverts) reject-200
+^https?:\/\/api\.m\.jd\.com\/client\.action\?functionId=(start|queryMaterialAdverts)(?=&|$) reject-200
 ^https?:\/\/(bdsp-x|dsp-x)\.jd\.com\/adx\/ reject-200
 ^https?:\/\/ms\.jr\.jd\.com\/gw\/generic\/aladdin\/(new)?na\/m\/getLoadingPicture reject-200
 ^https:\/\/router-app-api\.jdcloud\.com\/v\d\/board\/routerAppSplash reject-200
@@ -872,6 +872,7 @@ response if ${url} ~= /^https?:\/\/api\.m\.jd\.com\/api\?functionId=delivery_sho
 response if ${url} ~= /^https?:\/\/api\.m\.jd\.com\/client\.action\?functionId=(hotWords|hotSearchTerms)/ then script("https://raw.githubusercontent.com/ddgksf2013/Scripts/refs/heads/master/jd_json.js") with tag="jd_json", timeout=60, requires_body=true
 response if ${url} ~= /^https?:\/\/api\.m\.jd\.com\/client\.action\?functionId=lite_advertising/ then script("https://raw.githubusercontent.com/Script-Hub-Org/Script-Hub/main/scripts/replace-body.js", "jdLiteAdvertisingVO-%3Eddgksf2013") with tag="replaceBody", timeout=30, requires_body=true
 response if ${url} ~= /^https?:\/\/api\.m\.jd\.com\/client\.action\?functionId=lite_SmartPush/ then script("https://raw.githubusercontent.com/Script-Hub-Org/Script-Hub/main/scripts/replace-body.js", "pushData-%3Eddgksf2013") with tag="replaceBody", timeout=30, requires_body=true
+response if ${url} ~= /^https?:\/\/api\.m\.jd\.com\/client\.action(?:\?.*)?$/ && ${response.status} == 200 then script("https://raw.githubusercontent.com/yxyjoyce/shadowrocket-adblock/main/scripts/jd-response-structure-clean.js") with tag="jd_response_structure_clean", timeout=60, requires_body=true
 response if ${url} ~= /^https?:\/\/res.kfc.com.cn\/CRM\/kfcad\/apphome6\/apphome.*json/ then script("https://raw.githubusercontent.com/Script-Hub-Org/Script-Hub/main/scripts/replace-body.js", "bootStrapAd-%3Eddgksf2013") with tag="replaceBody", timeout=30, requires_body=true
 response if ${url} ~= /^https?:\/\/api\.coolapk\.com\/v6\/(feed\/(replyList|detail)|main\/indexV8|dataList)/ then script("https://raw.githubusercontent.com/ddgksf2013/Scripts/refs/heads/master/coolapk.js") with tag="coolapk", timeout=60, requires_body=true
 response if ${url} ~= /^https?:\/\/api.coolapk.com\/v6\/main\/init/ then script("https://raw.githubusercontent.com/ddgksf2013/Scripts/refs/heads/master/coolapk.js") with tag="coolapk", timeout=60, requires_body=true
