@@ -20,35 +20,74 @@ assert(!urlPattern.test("https://api.m.jd.com/other.action?functionId=queryPageP
 assert(!urlPattern.test("https://other.m.jd.com/client.action?functionId=queryPagePopWindow"));
 assert(!urlPattern.test("https://img30.360buyimg.com/client.action?functionId=queryPagePopWindow"));
 
-const mitmLine = lines.find((line) => line.startsWith("hostname = "));
-assert.equal(mitmLine, "hostname = api.m.jd.com", "diagnostic MITM scope must be api.m.jd.com only");
+const imageRuleLines = lines.filter((line) => line.includes("request if ${url} ~= /") && line.includes("m15\\.360buyimg\\.com") && line.includes("reject_img(200)"));
+assert.equal(imageRuleLines.length, 2, "expected two exact JD image reject rules");
+const imagePatterns = imageRuleLines.map((line) => {
+  const match = line.match(/^request if \$\{url\} ~= \/(.*)\/ then reject_img\(200\)$/);
+  assert(match, "could not extract image URL regex from the plugin rule");
+  return new RegExp(match[1]);
+});
+const expectedImagePaths = new Set([
+  "/mobilecms/jfs/t1/535295/1/15284/16310/6ad76d7aF40ccb489/02581b013ea1b837.png.webp",
+  "/mobilecms/jfs/t1/542232/20/10106/20235/6ad81abdF82ec8b07/02761b013ebec24e.png.webp",
+]);
+for (const pathname of expectedImagePaths) assert(imagePatterns.some((pattern) => pattern.test(`https://m15.360buyimg.com${pathname}`)));
+assert(imagePatterns.every((pattern) => pattern.test("https://m15.360buyimg.com/mobilecms/jfs/t1/535295/1/15284/16310/6ad76d7aF40ccb489/02581b013ea1b837.png.webp?cache=1") || pattern.test("https://m15.360buyimg.com/mobilecms/jfs/t1/542232/20/10106/20235/6ad81abdF82ec8b07/02761b013ebec24e.png.webp?cache=1")));
+assert(!imagePatterns.some((pattern) => pattern.test("https://m15.360buyimg.com/mobilecms/jfs/t1/535295/1/15284/16310/6ad76d7aF40ccb489/02581b013ea1b837.png")));
+assert(!imagePatterns.some((pattern) => pattern.test("https://m15.360buyimg.com/mobilecms/jfs/t1/535295/1/15284/16310/6ad76d7aF40ccb489/02581b013ea1b837.png.webp/extra")));
+assert(!imagePatterns.some((pattern) => pattern.test("http://m15.360buyimg.com/mobilecms/jfs/t1/535295/1/15284/16310/6ad76d7aF40ccb489/02581b013ea1b837.png.webp")));
+assert(!imagePatterns.some((pattern) => pattern.test("https://img30.360buyimg.com/mobilecms/jfs/t1/535295/1/15284/16310/6ad76d7aF40ccb489/02581b013ea1b837.png.webp")));
 
-if (process.argv[2]) {
-  const harPath = process.argv[2];
-  const har = JSON.parse(fs.readFileSync(harPath, "utf8"));
-  const targetEntries = [];
-  const otherClientEntries = [];
-  for (const entry of har.log.entries) {
-    try {
-      const url = new URL(entry.request.url);
-      if (url.hostname !== "api.m.jd.com" || url.pathname !== "/client.action") continue;
-      const functionId = url.searchParams.get("functionId");
-      if (functionId === "queryPagePopWindow") targetEntries.push({ entry, url });
-      else if (functionId) otherClientEntries.push({ entry, url, functionId });
-    } catch {
-      // Ignore malformed HAR URLs; they are not valid request candidates.
+const mitmLine = lines.find((line) => line.startsWith("hostname = "));
+assert.equal(mitmLine, "hostname = api.m.jd.com, m15.360buyimg.com", "diagnostic MITM scope changed unexpectedly");
+
+const harPaths = process.argv.slice(2);
+if (harPaths.length) {
+  let apiTargetCount = 0;
+  let apiOtherCount = 0;
+  const seenImagePaths = new Set();
+  for (const harPath of harPaths) {
+    const har = JSON.parse(fs.readFileSync(harPath, "utf8"));
+    let targetImageEntryCount = 0;
+    for (const entry of har.log.entries) {
+      let url;
+      try {
+        url = new URL(entry.request.url);
+      } catch {
+        continue;
+      }
+      if (url.hostname === "api.m.jd.com" && url.pathname === "/client.action") {
+        const functionId = url.searchParams.get("functionId");
+        if (functionId === "queryPagePopWindow") {
+          apiTargetCount += 1;
+          assert.equal(entry.response.status, 200, "HAR target response status changed");
+          assert(urlPattern.test(url.href), "HAR target URL did not match the extracted plugin regex");
+          assert.equal(url.searchParams.get("functionId"), "queryPagePopWindow");
+        } else if (functionId) {
+          apiOtherCount += 1;
+          assert(!urlPattern.test(url.href), "non-target functionId matched unexpectedly");
+        }
+      }
+      if (url.hostname === "m15.360buyimg.com") {
+        if (expectedImagePaths.has(url.pathname)) {
+          targetImageEntryCount += 1;
+          assert.equal(entry.response.status, 200, "HAR image response status changed");
+          assert(imagePatterns.some((pattern) => pattern.test(url.href)), "HAR image URL did not match an extracted plugin regex");
+          seenImagePaths.add(url.pathname);
+        } else {
+          assert(!imagePatterns.some((pattern) => pattern.test(url.href)), "similar normal m15 image matched unexpectedly");
+        }
+      }
     }
+    if (targetImageEntryCount > 0) assert.equal(targetImageEntryCount, 1, "each image HAR should contain one target m15 image request");
   }
-  assert.equal(targetEntries.length, 2, "HAR should contain two queryPagePopWindow requests");
-  for (const { entry, url } of targetEntries) {
-    assert.equal(entry.response.status, 200, "HAR target response status changed");
-    assert(urlPattern.test(url.href), "HAR target URL did not match the extracted plugin regex");
-    assert.equal(url.pathname, "/client.action");
-    assert.equal(url.searchParams.get("functionId"), "queryPagePopWindow");
+  if (apiTargetCount > 0) {
+    assert.equal(apiTargetCount, 2, "HAR set should contain two queryPagePopWindow requests");
+    assert(apiOtherCount > 0, "HAR set should provide non-target client.action functionIds");
   }
-  assert(otherClientEntries.length > 0, "HAR should provide non-target client.action functionIds");
-  for (const { url } of otherClientEntries) assert(!urlPattern.test(url.href), "non-target functionId matched unexpectedly");
-  console.log(`JD queryPagePopWindow request reject test passed: ${targetEntries.length} HAR targets matched; ${otherClientEntries.length} other functionIds excluded`);
+  if (seenImagePaths.size > 0) assert.deepStrictEqual(seenImagePaths, expectedImagePaths, "HAR image paths differ from the two exact plugin targets");
+  assert(apiTargetCount > 0 || seenImagePaths.size > 0, "HAR set contained neither interface nor image evidence");
+  console.log(`JD queryPagePopWindow and image reject tests passed: ${apiTargetCount} interface targets, ${seenImagePaths.size} exact image paths; ${apiOtherCount} other functionIds excluded`);
 } else {
   console.log("JD queryPagePopWindow request reject fixture and boundary tests passed");
 }
