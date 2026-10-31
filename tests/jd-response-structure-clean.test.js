@@ -8,6 +8,9 @@ const plugin = fs.readFileSync(path.join(worktree, "loon-adblock.plugin"), "utf8
 const scriptPath = path.join(worktree, "scripts", "jd-response-structure-clean.js");
 const script = fs.readFileSync(scriptPath, "utf8");
 const lines = plugin.split(/\r?\n/);
+const shadowrocketLines = fs.readFileSync(path.join(worktree, "shadowrocket-adblock.sgmodule"), "utf8").split(/\r?\n/);
+const quantumultLines = fs.readFileSync(path.join(worktree, "quantumultx-ad-precise-rewrite.conf"), "utf8").split(/\r?\n/);
+const quantumultSupplementLines = fs.readFileSync(path.join(worktree, "quantumultx-ad-precise-supplement.conf"), "utf8").split(/\r?\n/);
 
 const responseScriptUrl = "https://raw.githubusercontent.com/yxyjoyce/shadowrocket-adblock/main/scripts/jd-response-structure-clean.js";
 const responseLines = lines.filter((line) => line.includes(`script("${responseScriptUrl}")`));
@@ -30,6 +33,41 @@ assert(queryReject > rewriteSection && queryReject < scriptSection, "request rej
 assert(responseLines[0].includes("${response.status} == 200"));
 assert(responseLines[0].includes("requires_body=true"));
 
+const srQueryReject = shadowrocketLines.find((line) => line.includes("functionId=queryPagePopWindow") && line.includes("reject-dict"));
+assert(srQueryReject, "Shadowrocket queryPagePopWindow reject-dict missing");
+const srResponseLine = shadowrocketLines.find((line) => line.includes(`script-path=${responseScriptUrl}`));
+assert(srResponseLine && srResponseLine.includes("type=http-response") && srResponseLine.includes("requires-body=true"), "Shadowrocket JD response script missing");
+const srMitmHosts = shadowrocketLines
+  .filter((line) => line.startsWith("hostname = "))
+  .flatMap((line) => line.replace(/^hostname = (?:%APPEND%\s+)?/, "").split(",").map((host) => host.trim()));
+assert(srMitmHosts.includes("api.m.jd.com"), "Shadowrocket api.m.jd.com MITM missing");
+assert(srMitmHosts.includes("m15.360buyimg.com"), "Shadowrocket m15.360buyimg.com MITM missing");
+const qxQueryReject = quantumultLines.find((line) => line.includes("functionId=queryPagePopWindow") && line.includes("url reject-dict"));
+assert(qxQueryReject, "Quantumult X queryPagePopWindow reject-dict missing");
+const qxSupplementQueryReject = quantumultSupplementLines.find((line) => line.includes("functionId=queryPagePopWindow") && line.includes("url reject-dict"));
+assert.equal(qxSupplementQueryReject, qxQueryReject, "QX JD request rules must be equivalent in both supported entrypoints");
+const qxResponseLine = quantumultLines.find((line) => line.includes(`script-response-body ${responseScriptUrl}`));
+assert(qxResponseLine, "Quantumult X JD response script missing");
+const qxSupplementResponseLine = quantumultSupplementLines.find((line) => line.includes(`script-response-body ${responseScriptUrl}`));
+assert.equal(qxSupplementResponseLine, qxResponseLine, "QX JD response rules must be equivalent in both supported entrypoints");
+const qxMitmLine = quantumultLines.find((line) => line.startsWith("hostname = "));
+assert(qxMitmLine && /(?:, )api\.m\.jd\.com(?:,|$)/.test(qxMitmLine), "Quantumult X api.m.jd.com MITM missing");
+assert(/(?:, )m15\.360buyimg\.com(?:,|$)/.test(qxMitmLine), "Quantumult X m15.360buyimg.com MITM missing");
+const qxSupplementMitmLine = quantumultSupplementLines.find((line) => line.startsWith("hostname = "));
+assert(qxSupplementMitmLine && /(?:, )api\.m\.jd\.com(?:,|$)/.test(qxSupplementMitmLine), "Quantumult X supplement api.m.jd.com MITM missing");
+assert(/(?:, )m15\.360buyimg\.com(?:,|$)/.test(qxSupplementMitmLine), "Quantumult X supplement m15.360buyimg.com MITM missing");
+for (const basename of ["02581b013ea1b837", "02761b013ebec24e", "02761b013e4d11bd", "02761b013ef71270"]) {
+  assert(shadowrocketLines.some((line) => line.includes(basename) && line.includes("reject-img")), `Shadowrocket exact image rule missing: ${basename}`);
+  assert(quantumultLines.some((line) => line.includes(basename) && line.includes("reject-img")), `Quantumult X exact image rule missing: ${basename}`);
+  assert(quantumultSupplementLines.some((line) => line.includes(basename) && line.includes("reject-img")), `Quantumult X supplement exact image rule missing: ${basename}`);
+}
+assert(shadowrocketLines.some((line) => line.includes("jd-home-webp-size-response.js") && line.includes("binary-body-mode=true")), "Shadowrocket WebP size response rule missing");
+assert(shadowrocketLines.some((line) => line.includes("jd-home-png-size-response.js") && line.includes("binary-body-mode=true")), "Shadowrocket PNG size response rule missing");
+assert(quantumultLines.some((line) => line.includes("jd-home-webp-size-response.js")), "Quantumult X WebP size response rule missing");
+assert(quantumultLines.some((line) => line.includes("jd-home-png-size-response.js")), "Quantumult X PNG size response rule missing");
+assert(quantumultSupplementLines.some((line) => line.includes("jd-home-webp-size-response.js")), "Quantumult X supplement WebP size response rule missing");
+assert(quantumultSupplementLines.some((line) => line.includes("jd-home-png-size-response.js")), "Quantumult X supplement PNG size response rule missing");
+
 const oldJdRule = lines.find((line) => line.includes("functionId=(start|queryMaterialAdverts)"));
 assert(oldJdRule && oldJdRule.includes("(?=&|$)"), "legacy JD request rule needs a functionId boundary");
 const oldJdMatch = oldJdRule.match(/^([^ ]+) reject-200$/);
@@ -39,6 +77,8 @@ assert(oldJdPattern.test("https://api.m.jd.com/client.action?functionId=start"))
 assert(oldJdPattern.test("https://api.m.jd.com/client.action?functionId=queryMaterialAdverts&x=1"));
 assert(!oldJdPattern.test("https://api.m.jd.com/client.action?functionId=startup"));
 assert(!oldJdPattern.test("https://api.m.jd.com/client.action?functionId=queryMaterialAdvertsExtra"));
+const srOldJdRule = shadowrocketLines.find((line) => line.includes("functionId=(start|queryMaterialAdverts)"));
+assert(srOldJdRule && srOldJdRule.includes("(?=&|$)"), "Shadowrocket legacy JD functionId boundary missing");
 
 const responseUrlMatch = responseLines[0].match(/\$\{url\} ~= \/(.*)\/ &&/);
 assert(responseUrlMatch, "could not extract response URL regex from the plugin rule");
@@ -63,6 +103,17 @@ function run(url, body, status = 200) {
   };
   vm.runInNewContext(script, sandbox, { timeout: 1000 });
   assert.notEqual(result, undefined, "script did not call $done");
+  return result;
+}
+
+function runQx(url, body, statusCode = "HTTP/1.1 200 OK", headers = {}) {
+  let result;
+  vm.runInNewContext(script, {
+    $request: { url, headers },
+    $response: { statusCode, body },
+    $done: (value) => { result = value || {}; },
+  }, { timeout: 1000 });
+  assert.notEqual(result, undefined, "QX JD script did not call $done");
   return result;
 }
 
@@ -100,6 +151,10 @@ assert.deepEqual(homeOut.data.floorList, [
 assert.deepEqual(homeOut.data.webViewFloorList, [{ id: "keep-webview" }]);
 assert.deepEqual(homeOut.data.ruleFloat, { enabled: true });
 assert.equal(homeOut.data.otherField, "保留");
+const srStringStatusOut = parseOutput(run(jdUrl, JSON.stringify(home), "200"), false);
+assert.deepEqual(srStringStatusOut.data.floorList, homeOut.data.floorList, "string HTTP status was not accepted");
+const qxStatusOut = parseOutput(runQx(jdUrl, JSON.stringify(home), "HTTP/1.1 200 OK", { "Content-Type": "application/json" }), false);
+assert.deepEqual(qxStatusOut.data.floorList, homeOut.data.floorList, "QX statusCode was not accepted");
 
 const mine = {
   code: "0",
@@ -200,6 +255,7 @@ for (const [label, url, body, status] of [
   const result = run(url, body, status);
   assert.equal(Object.keys(result).length, 0, `${label} input was changed`);
 }
+assert.equal(Object.keys(runQx(jdUrl, JSON.stringify(home), "HTTP/1.1 304 Not Modified")).length, 0, "QX non-200 input was changed");
 
 function replayHar(harPath) {
   const har = JSON.parse(fs.readFileSync(harPath, "utf8"));

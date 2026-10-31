@@ -6,6 +6,11 @@ const { spawnSync } = require("node:child_process");
 const worktree = path.resolve(__dirname, "..");
 const plugin = fs.readFileSync(path.join(worktree, "loon-adblock.plugin"), "utf8");
 const lines = plugin.split(/\r?\n/);
+const shadowrocket = fs.readFileSync(path.join(worktree, "shadowrocket-adblock.sgmodule"), "utf8");
+const shadowrocketLines = shadowrocket.split(/\r?\n/);
+const quantumult = fs.readFileSync(path.join(worktree, "quantumultx-ad-precise-rewrite.conf"), "utf8");
+const quantumultLines = quantumult.split(/\r?\n/);
+const quantumultSupplementLines = fs.readFileSync(path.join(worktree, "quantumultx-ad-precise-supplement.conf"), "utf8").split(/\r?\n/);
 const jqLines = lines.filter((line) => line.includes("fanyi-app\\.baidu\\.com\\/transapp\\/v2\\/api\\/launch\\/config") && line.includes("response.json.jq(\""));
 assert.equal(jqLines.length, 1, "expected one launch-config V2 jq rule");
 const jqMarker = 'response.json.jq("';
@@ -23,6 +28,27 @@ assert(!urlPattern.test("https://other.baidu.com/transapp/v2/api/launch/config")
 
 const mitmLine = lines.find((line) => line.startsWith("hostname = "));
 assert(mitmLine && /(^|, )fanyi-app\.baidu\.com(,|$)/.test(mitmLine), "fanyi-app.baidu.com missing from MITM");
+const srJqLines = shadowrocketLines.filter((line) => line.includes("http-response-jq") && line.includes("fanyi-app\\.baidu\\.com\\/transapp\\/v2\\/api\\/launch\\/config"));
+assert.equal(srJqLines.length, 1, "expected one Shadowrocket fanyi response jq rule");
+const qxJqLines = quantumultLines.filter((line) => line.includes("jsonjq-response-body") && line.includes("fanyi-app\\.baidu\\.com\\/transapp\\/v2\\/api\\/launch\\/config"));
+assert.equal(qxJqLines.length, 1, "expected one Quantumult X fanyi response jq rule");
+const qxSupplementJqLines = quantumultSupplementLines.filter((line) => line.includes("jsonjq-response-body") && line.includes("fanyi-app\\.baidu\\.com\\/transapp\\/v2\\/api\\/launch\\/config"));
+assert.equal(qxSupplementJqLines.length, 1, "expected one fanyi response jq rule in the alternate QX supplement");
+assert.equal(qxSupplementJqLines[0], qxJqLines[0], "QX fanyi rules must be equivalent in both supported entrypoints");
+const srJqPattern = new RegExp(srJqLines[0].match(/^http-response-jq (.*?) '/)[1].replaceAll("\\/", "/"));
+const qxJqPattern = new RegExp(qxJqLines[0].match(/^(.*?) url jsonjq-response-body /)[1].replaceAll("\\/", "/"));
+for (const [name, pattern] of [["Shadowrocket", srJqPattern], ["Quantumult X", qxJqPattern]]) {
+  assert(pattern.test("https://fanyi-app.baidu.com/transapp/v2/api/launch/config"), `${name} fanyi URL rejected`);
+  assert(pattern.test("https://fanyi-app.baidu.com/transapp/v2/api/launch/config?cache=1"), `${name} fanyi query URL rejected`);
+  assert(!pattern.test("http://fanyi-app.baidu.com/transapp/v2/api/launch/config"), `${name} fanyi HTTP URL accepted`);
+  assert(!pattern.test("https://fanyi-app.baidu.com/transapp/v2/api/launch/config/extra"), `${name} fanyi suffix accepted`);
+}
+const srMitmHosts = shadowrocketLines.filter((line) => line.startsWith("hostname = ")).flatMap((line) => line.replace(/^hostname = (?:%APPEND%\s+)?/, "").split(",").map((host) => host.trim()));
+assert(srMitmHosts.includes("fanyi-app.baidu.com"), "Shadowrocket fanyi MITM missing");
+const qxMitmLine = quantumultLines.find((line) => line.startsWith("hostname = "));
+assert(qxMitmLine && /(^|, )fanyi-app\.baidu\.com(,|$)/.test(qxMitmLine), "Quantumult X fanyi MITM missing");
+const qxSupplementMitmLine = quantumultSupplementLines.find((line) => line.startsWith("hostname = "));
+assert(qxSupplementMitmLine && /(^|, )fanyi-app\.baidu\.com(,|$)/.test(qxSupplementMitmLine), "Quantumult X supplement fanyi MITM missing");
 
 const jqPath = process.argv[2] || path.resolve(worktree, "..", "smzdm-jq-validation", "jq.exe");
 const harPath = process.argv[3];
@@ -44,6 +70,16 @@ function clone(value) {
 
 function assertUnchanged(value, label) {
   assert.deepStrictEqual(runJq(value), value, `${label} changed unexpectedly`);
+}
+
+function runNativeJq(expression, value) {
+  const result = spawnSync(jqPath, ["-c", expression], {
+    input: JSON.stringify(value),
+    encoding: "utf8",
+    maxBuffer: 16 * 1024 * 1024,
+  });
+  assert.equal(result.status, 0, `native jq failed: ${result.stderr || result.error || "unknown error"}`);
+  return JSON.parse(result.stdout);
 }
 
 function applyLoonJsonAction(body) {
@@ -80,10 +116,19 @@ const target = {
     },
   },
 };
+function extractSingleQuotedExpression(line) {
+  const first = line.indexOf("'");
+  assert(first >= 0 && line.endsWith("'"), "native jq action is not single-quoted");
+  return line.slice(first + 1, -1);
+}
+const srExpression = extractSingleQuotedExpression(srJqLines[0]);
+const qxExpression = extractSingleQuotedExpression(qxJqLines[0]);
 const expected = clone(target);
 expected.data.launchSwitch = 0;
 for (const key of ["a_url", "i_url", "l_url", "jump_url"]) expected.data.defaultList.info[key] = "";
 assert.deepStrictEqual(runJq(target), expected, "target fixture was not minimally rewritten");
+assert.deepStrictEqual(runNativeJq(srExpression, target), expected, "Shadowrocket jq target fixture was not minimally rewritten");
+assert.deepStrictEqual(runNativeJq(qxExpression, target), expected, "Quantumult X jq target fixture was not minimally rewritten");
 assert.equal(applyLoonResponse(500, JSON.stringify(target)), JSON.stringify(target), "non-200 response was modified");
 const nonZeroErrno = clone(target);
 nonZeroErrno.errno = 1;
@@ -98,6 +143,10 @@ assertUnchanged(wrongType, "non-target atype");
 const wrongImage = clone(target);
 wrongImage.data.defaultList.info.i_url = "https://fanyiapp.cdn.bcebos.com/app/file/other.png";
 assertUnchanged(wrongImage, "non-target image");
+for (const [label, value] of [["native non-zero errno", nonZeroErrno], ["native launchSwitch=0", launchOff], ["native wrong type", wrongType], ["native wrong image", wrongImage]]) {
+  assert.deepStrictEqual(runNativeJq(srExpression, value), value, `${label} changed in Shadowrocket jq`);
+  assert.deepStrictEqual(runNativeJq(qxExpression, value), value, `${label} changed in Quantumult X jq`);
+}
 for (const value of [null, [], {}, { data: null }, { data: {} }, { data: { launchSwitch: 1 } }, { data: { defaultList: { info: {} } } }]) {
   assertUnchanged(value, "missing or invalid structure");
 }

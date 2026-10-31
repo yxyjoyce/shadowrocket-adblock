@@ -4,7 +4,13 @@
   var request = typeof $request === "object" && $request ? $request : {};
   var response = typeof $response === "object" && $response ? $response : {};
   var url = String(request.url || "");
-  if (!/^https?:\/\/api\.m\.jd\.com\/client\.action(?:\?.*)?$/.test(url) || response.status !== undefined && response.status !== 200) {
+  var responseStatus = response.status !== undefined ? response.status : response.statusCode;
+  function statusAllowsResponse(value) {
+    if (value === undefined || value === null || value === "") return true;
+    if (value === 200 || value === "200") return true;
+    return typeof value === "string" && /^HTTP\/\d(?:\.\d)?\s+200(?:\s+OK)?$/i.test(value.trim());
+  }
+  if (!/^https?:\/\/api\.m\.jd\.com\/client\.action(?:\?.*)?$/.test(url) || !statusAllowsResponse(responseStatus)) {
     finish({});
     return;
   }

@@ -5,6 +5,7 @@
   var response = typeof $response === "object" && $response ? $response : {};
   var url = String(request.url || "");
   var body = response.body;
+  var responseStatus = response.status !== undefined ? response.status : response.statusCode;
   var coreAnchors = [
     /id\s*=\s*["']wiseindex-bdlogo["']/i,
     /id\s*=\s*["']index-form["']/i,
@@ -15,6 +16,11 @@
   function finish(value, event) {
     logEvent(event);
     done(value);
+  }
+  function statusAllowsResponse(value) {
+    if (value === undefined || value === null || value === "") return true;
+    if (value === 200 || value === "200") return true;
+    return typeof value === "string" && /^HTTP\/\d(?:\.\d)?\s+200(?:\s+OK)?$/i.test(value.trim());
   }
   function allowedUrl(value) {
     var match = value.match(/^https:\/\/(?:www|m)\.baidu\.com\/(?:\?([^#]*))?$/);
@@ -29,7 +35,7 @@
     return true;
   }
 
-  if (response.status !== 200 || !allowedUrl(url)) {
+  if (!statusAllowsResponse(responseStatus) || !allowedUrl(url)) {
     finish({}, "skip_status_or_url");
     return;
   }

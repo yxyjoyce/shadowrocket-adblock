@@ -88,6 +88,29 @@ function runScript({ url = targetUrl, referer = "Image_JDAppHome", status = 200,
   return result;
 }
 
+function runQxScript({ url = targetUrl, referer = "Image_JDAppHome", statusCode = "HTTP/1.1 200 OK", body, responseHeaders } = {}) {
+  let result;
+  const sandbox = {
+    ArrayBuffer,
+    Uint8Array,
+    $request: { url, headers: referer === null ? {} : { Referer: referer } },
+    $response: {
+      statusCode,
+      headers: responseHeaders || {
+        "Content-Type": "image/webp",
+        "content-length": String(body ? body.length : 0),
+        "Content-Encoding": "identity",
+        "X-Fixture": "keep",
+      },
+      bodyBytes: body ? body.buffer.slice(body.byteOffset, body.byteOffset + body.byteLength) : new ArrayBuffer(0),
+    },
+    $done: (value) => { result = value; },
+  };
+  vm.runInNewContext(script, sandbox, { timeout: 1000 });
+  assert.notEqual(result, undefined, "QX script did not call $done");
+  return result;
+}
+
 function assertTransparent(result) {
   assert(result.body instanceof Uint8Array, "replacement body is not Uint8Array");
   assert.deepStrictEqual(Array.from(result.body), Array.from(transparentWebP));
@@ -106,6 +129,10 @@ for (const kind of ["VP8X", "VP8", "VP8L"]) {
   assertTransparent(runScript({ body: makeWebP(kind, 432, 318) }));
   assertPassThrough(runScript({ body: makeWebP(kind, 431, 318) }), `${kind} wrong width`);
 }
+const qxWebp = runQxScript({ body: makeWebP("VP8X", 432, 318) });
+assert(qxWebp.bodyBytes instanceof ArrayBuffer, "QX WebP replacement must use bodyBytes");
+assertTransparent({ ...qxWebp, body: new Uint8Array(qxWebp.bodyBytes) });
+assertTransparent(runScript({ body: makeWebP("VP8X", 432, 318), status: "200" }));
 assertPassThrough(runScript({ body: makeWebP("VP8X", 432, 318), referer: "OtherReferer" }), "non-home referer");
 assertPassThrough(runScript({ body: makeWebP("VP8X", 432, 318), status: 206 }), "non-200 response");
 assertPassThrough(runScript({ body: Uint8Array.from([0, 1, 2, 3]) }), "invalid WebP");
@@ -164,6 +191,9 @@ for (const harPath of harPaths) {
       targetCount += 1;
       successfulTargets += 1;
       assertTransparent(result);
+      const qxResult = runQxScript({ url: url.href, referer, statusCode: "HTTP/1.1 200 OK", body, responseHeaders: headerObject(entry.response.headers) });
+      assert(qxResult.bodyBytes instanceof ArrayBuffer, `${harName} QX WebP target did not return bodyBytes`);
+      assertTransparent({ ...qxResult, body: new Uint8Array(qxResult.bodyBytes) });
     } else {
       if (referer !== "Image_JDAppHome" && size && size.width === 432 && size.height === 318) nonHomeTargetCount += 1;
       if (referer === "Image_JDAppHome" && (!size || size.width !== 432 || size.height !== 318)) normalHomeCount += 1;

@@ -5,9 +5,22 @@
   var response = typeof $response === "object" && $response ? $response : {};
   var url = String(request.url || "");
   var urlPattern = /^https:\/\/m15\.360buyimg\.com\/mobilecms\/jfs\/t1\/[^?]*\/[0-9a-f]{4}1b013[0-9a-f]{7}\.png(?:\?.*)?$/;
+  var responseStatus = response.status !== undefined ? response.status : response.statusCode;
   var body = response.body;
+  var bodyBytes = response.bodyBytes;
 
-  if (response.status !== 200 || !urlPattern.test(url) ||
+  function statusAllowsResponse(value) {
+    if (value === undefined || value === null || value === "") return true;
+    if (value === 200 || value === "200") return true;
+    return typeof value === "string" && /^HTTP\/\d(?:\.\d)?\s+200(?:\s+OK)?$/i.test(value.trim());
+  }
+
+  if (bodyBytes !== undefined) {
+    if (typeof ArrayBuffer === "undefined" || !(bodyBytes instanceof ArrayBuffer) && !(bodyBytes instanceof Uint8Array)) bodyBytes = null;
+    else body = bodyBytes instanceof Uint8Array ? bodyBytes : new Uint8Array(bodyBytes);
+  }
+
+  if (!statusAllowsResponse(responseStatus) || !urlPattern.test(url) ||
       typeof Uint8Array === "undefined" || !(body instanceof Uint8Array)) {
     done({});
     return;
@@ -49,9 +62,7 @@
   }
   headers["Content-Type"] = "image/png";
 
-  done({
-    headers: headers,
-    body: new Uint8Array([
+  var replacement = new Uint8Array([
       0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
       0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52,
       0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
@@ -61,6 +72,9 @@
       0x05, 0x00, 0x01, 0x7a,
       0x5e, 0xab, 0x3f, 0x00, 0x00, 0x00, 0x00, 0x49,
       0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82,
-    ]),
-  });
+    ]);
+  var output = { headers: headers };
+  if (response.bodyBytes !== undefined) output.bodyBytes = replacement.buffer;
+  else output.body = replacement;
+  done(output);
 })();

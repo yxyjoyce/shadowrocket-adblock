@@ -82,6 +82,29 @@ function runScript({ url = targetUrl, status = 200, body, headers } = {}) {
   return result;
 }
 
+function runQxScript({ url = targetUrl, statusCode = "HTTP/1.1 200 OK", body, headers } = {}) {
+  let result;
+  const sandbox = {
+    ArrayBuffer,
+    Uint8Array,
+    $request: { url, headers: {} },
+    $response: {
+      statusCode,
+      headers: headers || {
+        "Content-Type": "image/png",
+        "content-length": String(body ? body.length : 0),
+        "Content-Encoding": "identity",
+        "X-Fixture": "keep",
+      },
+      bodyBytes: body ? body.buffer.slice(body.byteOffset, body.byteOffset + body.byteLength) : new ArrayBuffer(0),
+    },
+    $done: (value) => { result = value; },
+  };
+  vm.runInNewContext(script, sandbox, { timeout: 1000 });
+  assert.notEqual(result, undefined, "QX script did not call $done");
+  return result;
+}
+
 function assertPassThrough(result, label) {
   assert.equal(Object.keys(result).length, 0, `${label} was modified unexpectedly`);
 }
@@ -150,6 +173,10 @@ function assertTransparent(result) {
 }
 
 assertTransparent(runScript({ body: makePng(432, 318) }));
+const qxTransparent = runQxScript({ body: makePng(432, 318) });
+assert(qxTransparent.bodyBytes instanceof ArrayBuffer, "QX PNG replacement must use bodyBytes");
+assertTransparent({ ...qxTransparent, body: new Uint8Array(qxTransparent.bodyBytes) });
+assertTransparent(runScript({ body: makePng(432, 318), status: "200" }));
 for (const [label, options] of [
   ["wrong-width", { body: makePng(431, 318) }],
   ["wrong-height", { body: makePng(432, 317) }],
@@ -202,6 +229,9 @@ function replayHar(harPath) {
       assert.equal(sourcePng.width, 432);
       assert.equal(sourcePng.height, 318);
       assertTransparent(result);
+      const qxResult = runQxScript({ url: url.href, statusCode: "HTTP/1.1 200 OK", body, headers: headerObject(entry.response.headers) });
+      assert(qxResult.bodyBytes instanceof ArrayBuffer, `${harName} QX PNG target did not return bodyBytes`);
+      assertTransparent({ ...qxResult, body: new Uint8Array(qxResult.bodyBytes) });
     } else {
       assertPassThrough(result, `${harName} non-target image`);
     }

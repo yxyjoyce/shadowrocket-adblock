@@ -7,9 +7,22 @@
   var urlPattern = /^https:\/\/m15\.360buyimg\.com\/mobilecms\/jfs\/t1\/[^?]*\.webp(?:\?.*)?$/;
   var requestHeaders = request.headers || {};
   var referer = requestHeaders.Referer || requestHeaders.referer || requestHeaders.REFERER || "";
+  var responseStatus = response.status !== undefined ? response.status : response.statusCode;
   var body = response.body;
+  var bodyBytes = response.bodyBytes;
 
-  if (response.status !== 200 || !urlPattern.test(url) || referer !== "Image_JDAppHome" ||
+  function statusAllowsResponse(value) {
+    if (value === undefined || value === null || value === "") return true;
+    if (value === 200 || value === "200") return true;
+    return typeof value === "string" && /^HTTP\/\d(?:\.\d)?\s+200(?:\s+OK)?$/i.test(value.trim());
+  }
+
+  if (bodyBytes !== undefined) {
+    if (typeof ArrayBuffer === "undefined" || !(bodyBytes instanceof ArrayBuffer) && !(bodyBytes instanceof Uint8Array)) bodyBytes = null;
+    else body = bodyBytes instanceof Uint8Array ? bodyBytes : new Uint8Array(bodyBytes);
+  }
+
+  if (!statusAllowsResponse(responseStatus) || !urlPattern.test(url) || referer !== "Image_JDAppHome" ||
       typeof Uint8Array === "undefined" || !(body instanceof Uint8Array)) {
     done({});
     return;
@@ -78,13 +91,14 @@
   }
   headers["Content-Type"] = "image/webp";
 
-  done({
-    headers: headers,
-    body: new Uint8Array([
+  var replacement = new Uint8Array([
       0x52, 0x49, 0x46, 0x46, 0x16, 0x00, 0x00, 0x00,
       0x57, 0x45, 0x42, 0x50, 0x56, 0x50, 0x38, 0x4c,
       0x0a, 0x00, 0x00, 0x00, 0x2f, 0x00, 0x00, 0x00,
       0x10, 0x88, 0x88, 0x08, 0x00, 0x00,
-    ]),
-  });
+    ]);
+  var output = { headers: headers };
+  if (response.bodyBytes !== undefined) output.bodyBytes = replacement.buffer;
+  else output.body = replacement;
+  done(output);
 })();
